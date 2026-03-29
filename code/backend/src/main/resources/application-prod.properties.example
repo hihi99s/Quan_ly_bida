@@ -1,0 +1,33 @@
+# ===================================================================
+# Prod profile template (copy to application-prod.properties)
+# Activate with: --spring.profiles.active=prod
+# Do NOT commit real credentials; use environment variables in deploy.
+# ===================================================================
+
+# ---- Database (required) ------------------------------------------
+spring.datasource.url=${DB_URL}
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.hikari.maximum-pool-size=${DB_POOL_SIZE:20}
+spring.datasource.hikari.minimum-idle=${DB_MIN_IDLE:5}
+spring.datasource.hikari.connection-timeout=${DB_CONN_TIMEOUT_MS:30000}
+
+# ---- JPA / Hibernate ----------------------------------------------
+spring.jpa.hibernate.ddl-auto=validate
+spring.jpa.show-sql=false
+spring.jpa.properties.hibernate.format_sql=false
+spring.jpa.properties.hibernate.use_sql_comments=false
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
+spring.jpa.open-in-view=false
+
+# ---- Thymeleaf / Static -------------------------------------------
+spring.thymeleaf.cache=true
+spring.web.resources.cache.period=3600
+
+# ---- Server / Misc ------------------------------------------------
+server.port=${PORT:8080}
+server.servlet.context-path=/
+logging.level.com.bida=INFO
+logging.level.org.hibernate.SQL=WARN
+logging.level.org.springframework.security=INFO

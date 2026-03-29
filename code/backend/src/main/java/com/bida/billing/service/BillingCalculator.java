@@ -32,6 +32,8 @@ public class BillingCalculator {
 
     /**
      * Tinh tien chinh thuc cho phien da ket thuc.
+     *
+     * @throws IllegalStateException nếu không tìm thấy PriceRule cho cặp tableType + dayType
      */
     public BillingResult calculate(Session session) {
         if (session.getEndTime() == null) {
@@ -40,14 +42,27 @@ public class BillingCalculator {
         }
 
         DayType dayType = resolveDayType(session.getStartTime());
-        log.info("Tinh tien chinh thuc – session #{} | dayType={}", session.getId(), dayType);
+        String tableType = session.getTable().getTableType().toString();
 
-        return pricingStrategy.calculate(
-                session.getStartTime(),
-                session.getEndTime(),
-                session.getTable().getTableType(),
-                dayType
-        );
+        log.info("Tinh tien chinh thuc – session #{} | Ban: {} | Table Type: {} | Day Type: {}",
+                session.getId(), session.getTable().getName(), tableType, dayType);
+
+        try {
+            BillingResult result = pricingStrategy.calculate(
+                    session.getStartTime(),
+                    session.getEndTime(),
+                    session.getTable().getTableType(),
+                    dayType
+            );
+            log.info("✓ Tính tiền thành công - Session #{} | Tổng: {} VND | {} segment(s)",
+                    session.getId(), result.getTotalAmount(),
+                    result.getSegments() != null ? result.getSegments().size() : 0);
+            return result;
+        } catch (RuntimeException e) {
+            log.error("✗ LỖI TÍNH TIỀN - Session #{} (Ban: {}, Table Type: {}, Day Type: {}) - Chi tiết: {}",
+                    session.getId(), session.getTable().getName(), tableType, dayType, e.getMessage(), e);
+            throw e; // Rethrow để SessionService xử lý
+        }
     }
 
     /**

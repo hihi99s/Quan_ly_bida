@@ -18,16 +18,16 @@ public class AdminCustomerController {
     private final CustomerService customerService;
 
     @GetMapping
-    public String listCustomers(@RequestParam(required = false) String search, Model model) {
+    public String listCustomers(@RequestParam(required = false) String keyword, Model model) {
         List<Customer> customers;
-        if (search != null && !search.isEmpty()) {
-            customers = customerService.search(search);
-            model.addAttribute("search", search);
+        if (keyword != null && !keyword.isEmpty()) {
+            customers = customerService.search(keyword);
+            model.addAttribute("keyword", keyword);
         } else {
             customers = customerService.getAllCustomers();
         }
         model.addAttribute("customers", customers);
-        model.addAttribute("topVIP", customerService.getTopVIP());
+        model.addAttribute("topCustomers", customerService.getTopVIP());
         return "admin/customers";
     }
 

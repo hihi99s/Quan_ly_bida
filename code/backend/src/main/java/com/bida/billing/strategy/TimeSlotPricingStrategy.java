@@ -49,17 +49,23 @@ public class TimeSlotPricingStrategy implements PricingStrategy {
                                    TableType tableType,
                                    DayType dayType) {
 
-        log.info("Tính tiền [{} / {}] từ {} → {}", tableType, dayType, start, end);
+        log.info("TimeSlotPricingStrategy.calculate – [{} / {}] từ {} → {}",
+                tableType, dayType, start, end);
 
         // 1. Load price rules từ DB (đã sort theo startTime ASC)
         List<PriceRule> rules = priceRuleRepository
                 .findByTableTypeAndDayTypeOrderByStartTimeAsc(tableType, dayType);
 
-        if (rules.isEmpty()) {
-            throw new RuntimeException(
-                    "Không tìm thấy bảng giá cho loại bàn [" + tableType
-                    + "] và loại ngày [" + dayType + "]");
+        if (rules == null || rules.isEmpty()) {
+            String errorMsg = String.format(
+                    "Không tìm thấy bảng giá cho loại bàn [%s] và loại ngày [%s]. " +
+                    "Vui lòng kiểm tra bảng giá trong admin panel.",
+                    tableType, dayType);
+            log.error("✗ {}", errorMsg);
+            throw new IllegalStateException(errorMsg);
         }
+
+        log.debug("Query trả về {} rules cho [{} / {}]", rules.size(), tableType, dayType);
 
         // 2. Chia thành các segment theo khung giờ
         List<BillingSegment> segments = segmentSplitter.split(start, end, rules);
@@ -73,7 +79,7 @@ public class TimeSlotPricingStrategy implements PricingStrategy {
                 .mapToLong(BillingSegment::getDurationMinutes)
                 .sum();
 
-        log.info("Kết quả: {} segment(s) | {}p | tổng = {} VND",
+        log.info("✓ Kết quả: {} segment(s) | {}p | tổng = {} VND",
                 segments.size(), totalMinutes, totalAmount);
 
         return BillingResult.builder()

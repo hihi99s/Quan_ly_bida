@@ -76,7 +76,8 @@ public class SecurityConfig {
             )
 
             // ---- CSRF ----
-            // Disable for WebSocket handshake and stateless API calls
+            // Disable for WebSocket handshake and stateless API calls ONLY.
+            // DO NOT ignore /admin/** → instead add CSRF token to Thymeleaf forms.
             .csrf(csrf -> csrf
                 .ignoringRequestMatchers("/ws/**", "/api/**")
             )

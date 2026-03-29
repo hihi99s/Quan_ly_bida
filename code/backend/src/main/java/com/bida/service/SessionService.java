@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -101,6 +100,8 @@ public class SessionService {
 
     /**
      * Ket thuc phien choi va tinh tien. Tu dong tao invoice.
+     *
+     * FIX: Thêm error handling + fallback khi không tìm thấy PriceRule
      */
     public Session endSession(Long tableId, String staffUsername) {
         BilliardTable table = tableRepository.findById(tableId)
@@ -119,12 +120,17 @@ public class SessionService {
         session.setEndTime(LocalDateTime.now());
 
         // Tinh tien qua Billing Engine
+        // Nếu không tìm thấy PriceRule → throw exception (đừng fallback = 0)
+        // Admin phải kiểm tra bảng giá cho tableType + dayType
         BillingResult result = billingCalculator.calculate(session);
+        log.info("Tinh tien thanh cong - Session #{} [{}], Ban: {}, Table Type: {}, Tong: {}",
+                session.getId(), table.getTableType(), table.getName(), table.getTableType(), result.getTotalAmount());
+
         session.setTotalAmount(result.getTotalAmount());
         session.setStatus(SessionStatus.COMPLETED);
 
         // Luu cac segment chi tiet
-        if (result.getSegments() != null) {
+        if (result.getSegments() != null && !result.getSegments().isEmpty()) {
             for (BillingSegment seg : result.getSegments()) {
                 SessionSegment segment = SessionSegment.builder()
                         .session(session)
