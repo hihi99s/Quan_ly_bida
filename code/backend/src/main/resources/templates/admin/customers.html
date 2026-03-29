@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quản Lý Khách Hàng | Admin Quán Bida</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"/>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet"/>
+
+    <style>
+        /* ── Layout ────────────────────────────────────────────────── */
+        body {
+            background: #f4f6fb;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ─────────────────────────────────────────────────── */
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: .5px;
+        }
+        .navbar-dark { background: #1a1a2e !important; }
+        .navbar-dark .nav-link { color: rgba(255,255,255,.75) !important; }
+        .navbar-dark .nav-link:hover,
+        .navbar-dark .nav-link.active { color: #fff !important; }
+
+        /* ── Page header ─────────────────────────────────────────────── */
+        .page-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+            color: #fff;
+            padding: 2rem 0 1.5rem;
+        }
+        .page-header h1 { font-size: 1.75rem; font-weight: 700; }
+        .page-header p  { opacity: .75; margin: 0; }
+
+        /* ── VIP Top Section ─────────────────────────────────────────── */
+        .vip-section {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.10);
+            overflow: hidden;
+            background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+        }
+        .vip-section .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(0,0,0,.08);
+            font-weight: 700;
+            color: #5a3e00;
+        }
+        .vip-card {
+            background: rgba(255,255,255,.85);
+            border-radius: 12px;
+            padding: .65rem .85rem;
+            text-align: center;
+            transition: transform .2s, box-shadow .2s;
+            border: 1.5px solid rgba(0,0,0,.06);
+        }
+        .vip-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0,0,0,.12);
+        }
+        .vip-rank {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            font-size: .7rem;
+            font-weight: 800;
+            color: #fff;
+        }
+        .vip-rank-1 { background: #f59e0b; }
+        .vip-rank-2 { background: #94a3b8; }
+        .vip-rank-3 { background: #cd7f32; }
+        .vip-rank-other { background: #64748b; }
+        .vip-name { font-weight: 700; font-size: .82rem; color: #1e293b; }
+        .vip-spent { font-size: .75rem; color: #92400e; font-weight: 600; }
+
+        /* ── Cards & Tables ──────────────────────────────────────────── */
+        .content-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.07);
+            overflow: hidden;
+        }
+        .customer-table { margin: 0; }
+        .customer-table thead th {
+            background: #f8fafc;
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #64748b;
+            padding: .6rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .customer-table tbody tr { transition: background .15s; }
+        .customer-table tbody tr:hover { background: #f8fafc; }
+        .customer-table td { padding: .7rem 1rem; vertical-align: middle; }
+
+        .btn-edit   { border-radius: 8px; padding: .3rem .75rem; font-size: .82rem; }
+        .btn-delete { border-radius: 8px; padding: .3rem .75rem; font-size: .82rem; }
+
+        /* ── Membership Tier Badges ──────────────────────────────────── */
+        .tier-badge {
+            font-size: .78rem;
+            padding: .3em .75em;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: .3px;
+        }
+
+        /* ── Add-customer collapse form ──────────────────────────────── */
+        .add-form-section {
+            background: #f8fafc;
+            border-top: 1px dashed #cbd5e1;
+            padding: 1.1rem 1.25rem;
+        }
+        .add-form-section label { font-size: .82rem; font-weight: 600; color: #475569; }
+        .add-form-section .form-control {
+            border-radius: 8px;
+            font-size: .9rem;
+        }
+
+        /* ── Search form ─────────────────────────────────────────────── */
+        .search-input {
+            border-radius: 50px;
+            padding-left: 1rem;
+            font-size: .9rem;
+        }
+        .btn-search {
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: .9rem;
+        }
+
+        /* ── Empty state ─────────────────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: #94a3b8;
+        }
+        .empty-state .bi { font-size: 2.5rem; display: block; margin-bottom: .5rem; }
+
+        /* ── Flash alerts ────────────────────────────────────────────── */
+        .flash-container { position: sticky; top: 1rem; z-index: 1050; }
+        .alert { border-radius: 12px; border: none; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+
+        /* ── Modal ───────────────────────────────────────────────────── */
+        .modal-content { border-radius: 16px; border: none; }
+        .modal-header  { border-bottom: 1px solid #f1f5f9; }
+        .modal-footer  { border-top: 1px solid #f1f5f9; }
+        .modal-title   { font-weight: 700; color: #0f3460; }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ═══════════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/admin">
+            <i class="bi bi-circle-fill text-warning me-1"></i>Quản Lý Quán Bida
+        </a>
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/dashboard}">
+                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/tables}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Bàn
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/prices}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-currency-dollar me-1"></i>Giá
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/products}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-box-seam me-1"></i>Sản phẩm
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/invoices}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-receipt me-1"></i>Hóa đơn
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/admin/customers}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-people-fill me-1"></i>Khách hàng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/holidays}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-calendar-heart me-1"></i>Ngày lễ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/staff}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-person-badge me-1"></i>Nhân viên
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/reports}" sec:authorize="hasRole('ADMIN')">
+                        <i class="bi bi-bar-chart-line me-1"></i>Báo cáo
+                    </a>
+                </li>
+                <li class="nav-item ms-2">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                            <i class="bi bi-box-arrow-right me-1"></i>Thoát
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════ PAGE HEADER ══════════════════════════════════════════════ -->
+<div class="page-header">
+    <div class="container-xl px-4">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb mb-0" style="font-size:.82rem; opacity:.7">
+                <li class="breadcrumb-item">
+                    <a href="/admin" class="text-white-50 text-decoration-none">Admin</a>
+                </li>
+                <li class="breadcrumb-item active text-white">Khách hàng</li>
+            </ol>
+        </nav>
+        <h1><i class="bi bi-people-fill me-2 text-warning"></i>Quản Lý Khách Hàng &amp; Thành Viên</h1>
+        <p>Quản lý thông tin khách hàng, hạng thành viên, tích điểm và lịch sử chi tiêu.</p>
+    </div>
+</div>
+
+<!-- ═══════════════ MAIN CONTENT ═════════════════════════════════════════════ -->
+<div class="container-xl px-4 py-4">
+
+    <!-- ── Flash Messages ────────────────────────────────────────────────── -->
+    <div class="flash-container mb-3" th:if="${success != null or error != null}">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- ── TOP VIP CUSTOMERS ─────────────────────────────────────────────── -->
+    <div class="vip-section card mb-4" th:if="${topCustomers != null and !#lists.isEmpty(topCustomers)}">
+        <div class="card-header d-flex align-items-center gap-2 px-4 py-3">
+            <i class="bi bi-trophy-fill" style="font-size:1.2rem; color:#92400e;"></i>
+            <span>Top 10 Khách Hàng VIP (Chi Tiêu Cao Nhất)</span>
+            <span class="badge rounded-pill bg-dark ms-auto"
+                  th:text="${#lists.size(topCustomers)} + ' khách'"></span>
+        </div>
+        <div class="card-body px-4 py-3">
+            <div class="d-flex flex-wrap gap-2">
+                <div class="vip-card" th:each="tc, iter : ${topCustomers}">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="vip-rank"
+                              th:classappend="${iter.count == 1} ? 'vip-rank-1' :
+                                              (${iter.count == 2} ? 'vip-rank-2' :
+                                              (${iter.count == 3} ? 'vip-rank-3' : 'vip-rank-other'))"
+                              th:text="${iter.count}"></span>
+                        <div class="text-start">
+                            <div class="vip-name" th:text="${tc.name}">Nguyễn Văn A</div>
+                            <div class="vip-spent">
+                                <i class="bi bi-coin me-1"></i>
+                                <span th:text="${#numbers.formatDecimal(tc.totalSpent, 0, 'COMMA', 0, 'POINT')} + ' đ'">0 đ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SEARCH + ADD ACTIONS ──────────────────────────────────────────── -->
+    <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+        <!-- Search Form -->
+        <form th:action="@{/admin/customers}" method="get" class="d-flex gap-2 flex-grow-1" style="max-width:480px;">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0" style="border-radius:50px 0 0 50px;">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" name="keyword" class="form-control border-start-0 search-input"
+                       style="border-radius:0 50px 50px 0;"
+                       placeholder="Tìm theo tên hoặc số điện thoại..."
+                       th:value="${keyword}"/>
+            </div>
+            <button type="submit" class="btn btn-primary btn-search px-4">
+                <i class="bi bi-search me-1"></i>Tìm
+            </button>
+            <a th:href="@{/admin/customers}" class="btn btn-outline-secondary btn-search px-3"
+               th:if="${keyword != null and keyword != ''}">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        </form>
+
+        <!-- Add Customer Toggle -->
+        <button class="btn btn-success rounded-pill fw-semibold px-4"
+                type="button" data-bs-toggle="collapse" data-bs-target="#addCustomerForm">
+            <i class="bi bi-person-plus-fill me-1"></i>Thêm khách hàng
+        </button>
+    </div>
+
+    <!-- ── ADD CUSTOMER COLLAPSE FORM ────────────────────────────────────── -->
+    <div class="collapse mb-4" id="addCustomerForm">
+        <div class="content-card card">
+            <div class="card-header bg-white px-4 py-3">
+                <h6 class="mb-0 fw-bold text-primary">
+                    <i class="bi bi-person-plus me-2"></i>Thêm Khách Hàng Mới
+                </h6>
+            </div>
+            <div class="card-body add-form-section">
+                <form th:action="@{/admin/customers}" method="post" class="row g-3 align-items-end">
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-person me-1"></i>Họ và tên
+                        </label>
+                        <input type="text" name="name" class="form-control"
+                               placeholder="VD: Nguyễn Văn A" required/>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-telephone me-1"></i>Số điện thoại
+                        </label>
+                        <input type="tel" name="phone" class="form-control"
+                               placeholder="VD: 0901234567" required/>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-envelope me-1"></i>Email
+                        </label>
+                        <input type="email" name="email" class="form-control"
+                               placeholder="VD: email@domain.com"/>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-semibold">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── CUSTOMER TABLE ────────────────────────────────────────────────── -->
+    <div class="content-card card">
+        <div class="card-header bg-white d-flex align-items-center justify-content-between px-4 py-3">
+            <h6 class="mb-0 fw-bold">
+                <i class="bi bi-list-ul me-2 text-primary"></i>Danh Sách Khách Hàng
+            </h6>
+            <span class="badge bg-primary rounded-pill px-3 py-2"
+                  th:text="'Tổng: ' + ${customers != null ? #lists.size(customers) : 0} + ' khách'">
+                Tổng: 0 khách
+            </span>
+        </div>
+
+        <div class="table-responsive"
+             th:if="${customers != null and !#lists.isEmpty(customers)}">
+            <table class="table customer-table mb-0">
+                <thead>
+                <tr>
+                    <th style="width:60px">#</th>
+                    <th><i class="bi bi-person me-1"></i>Họ tên</th>
+                    <th><i class="bi bi-telephone me-1"></i>Điện thoại</th>
+                    <th><i class="bi bi-envelope me-1"></i>Email</th>
+                    <th><i class="bi bi-award me-1"></i>Hạng thành viên</th>
+                    <th><i class="bi bi-cash-stack me-1"></i>Tổng chi tiêu</th>
+                    <th><i class="bi bi-star me-1"></i>Điểm</th>
+                    <th style="width:150px" class="text-center">Thao tác</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="c, iter : ${customers}">
+                    <td class="text-muted" th:text="${iter.count}">1</td>
+                    <td class="fw-semibold" th:text="${c.name}">Nguyễn Văn A</td>
+                    <td th:text="${c.phone}">0901234567</td>
+                    <td>
+                        <span th:if="${c.email != null and c.email != ''}" th:text="${c.email}">email@domain.com</span>
+                        <span th:if="${c.email == null or c.email == ''}" class="text-muted fst-italic">Chưa có</span>
+                    </td>
+                    <td>
+                        <span class="tier-badge badge"
+                              th:classappend="${c.membershipTier.name() == 'BRONZE'}   ? 'bg-secondary' :
+                                              (${c.membershipTier.name() == 'SILVER'} ? 'bg-info text-dark' :
+                                              (${c.membershipTier.name() == 'GOLD'}   ? 'bg-warning text-dark' :
+                                              'bg-primary'))"
+                              th:text="${c.membershipTier.name() == 'BRONZE'}  ? 'Đồng' :
+                                        (${c.membershipTier.name() == 'SILVER'} ? 'Bạc' :
+                                        (${c.membershipTier.name() == 'GOLD'}   ? 'Vàng' :
+                                        'Kim Cương'))">
+                            Đồng
+                        </span>
+                    </td>
+                    <td class="fw-semibold text-success"
+                        th:text="${#numbers.formatDecimal(c.totalSpent, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                        0 đ
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-star-fill text-warning me-1"></i>
+                            <span th:text="${c.points}">0</span>
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <!-- Sửa -->
+                        <button type="button"
+                                class="btn btn-sm btn-outline-primary btn-edit me-1"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editCustomerModal"
+                                th:data-id="${c.id}"
+                                th:data-name="${c.name}"
+                                th:data-phone="${c.phone}"
+                                th:data-email="${c.email}"
+                                th:data-tier="${c.membershipTier}">
+                            <i class="bi bi-pencil-fill me-1"></i>Sửa
+                        </button>
+                        <!-- Xóa -->
+                        <form th:action="@{'/admin/customers/' + ${c.id} + '/delete'}"
+                              method="post" class="d-inline"
+                              onsubmit="return confirmDelete(this)">
+                            <button type="submit" class="btn btn-sm btn-outline-danger btn-delete">
+                                <i class="bi bi-trash3-fill"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state"
+             th:if="${customers == null or #lists.isEmpty(customers)}">
+            <i class="bi bi-people"></i>
+            <p class="mb-1 fw-semibold">Chưa có khách hàng nào</p>
+            <span th:if="${keyword != null and keyword != ''}"
+                  class="text-muted">Không tìm thấy kết quả cho "<span th:text="${keyword}"></span>"</span>
+            <span th:if="${keyword == null or keyword == ''}"
+                  class="text-muted">Nhấn "Thêm khách hàng" để bắt đầu.</span>
+        </div>
+    </div>
+
+    <p class="text-muted mt-3 mb-0" style="font-size:.85rem;">
+        <i class="bi bi-info-circle me-1"></i>
+        Hạng thành viên được cập nhật tự động dựa trên tổng chi tiêu của khách hàng.
+    </p>
+
+</div><!-- /container -->
+
+<!-- ═══════════════ EDIT MODAL ════════════════════════════════════════════════ -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header px-4 pt-4 pb-3">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>Chỉnh Sửa Khách Hàng
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="editCustomerForm" method="post" action="#">
+                <div class="modal-body px-4 pb-2">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-person me-1"></i>Họ và tên
+                            </label>
+                            <input type="text" id="editName" name="name"
+                                   class="form-control" required/>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-telephone me-1"></i>Số điện thoại
+                            </label>
+                            <input type="tel" id="editPhone" name="phone"
+                                   class="form-control" required/>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-envelope me-1"></i>Email
+                            </label>
+                            <input type="email" id="editEmail" name="email"
+                                   class="form-control"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-award me-1"></i>Hạng thành viên
+                            </label>
+                            <select id="editTier" name="membershipTier" class="form-select">
+                                <option value="BRONZE">Đồng (Bronze)</option>
+                                <option value="SILVER">Bạc (Silver)</option>
+                                <option value="GOLD">Vàng (Gold)</option>
+                                <option value="DIAMOND">Kim Cương (Diamond)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer px-4 pb-4 pt-2">
+                    <button type="button" class="btn btn-light px-4 rounded-pill"
+                            data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold">
+                        <i class="bi bi-check-lg me-1"></i>Cập Nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ SCRIPTS ════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Điền dữ liệu vào Edit Modal ──────────────────────────────────────────
+    document.getElementById('editCustomerModal').addEventListener('show.bs.modal', function (e) {
+        const btn   = e.relatedTarget;
+        const id    = btn.getAttribute('data-id');
+        const name  = btn.getAttribute('data-name');
+        const phone = btn.getAttribute('data-phone');
+        const email = btn.getAttribute('data-email');
+        const tier  = btn.getAttribute('data-tier');
+
+        document.getElementById('editCustomerForm').action = '/admin/customers/' + id + '/edit';
+        document.getElementById('editName').value  = name  || '';
+        document.getElementById('editPhone').value = phone || '';
+        document.getElementById('editEmail').value = email || '';
+        document.getElementById('editTier').value  = tier  || 'BRONZE';
+    });
+
+    // ── Xác nhận xóa ─────────────────────────────────────────────────────────
+    function confirmDelete(form) {
+        return confirm('Bạn có chắc muốn xóa khách hàng này không?\nThao tác này không thể hoàn tác.');
+    }
+
+    // ── Auto-dismiss flash alerts sau 4 giây ─────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.alert').forEach(function (el) {
+            setTimeout(function () {
+                var bsAlert = bootstrap.Alert.getOrCreateInstance(el);
+                if (bsAlert) bsAlert.close();
+            }, 4000);
+        });
+    });
+</script>
+
+</body>
+</html>

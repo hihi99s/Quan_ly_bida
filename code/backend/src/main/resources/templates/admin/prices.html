@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quản Lý Giá | Admin Quán Bida</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"/>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet"/>
+
+    <style>
+        /* ── Layout ────────────────────────────────────────────────── */
+        body {
+            background: #f4f6fb;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ─────────────────────────────────────────────────── */
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: .5px;
+        }
+        .navbar-dark { background: #1a1a2e !important; }
+        .navbar-dark .nav-link { color: rgba(255,255,255,.75) !important; }
+        .navbar-dark .nav-link:hover,
+        .navbar-dark .nav-link.active { color: #fff !important; }
+
+        /* ── Page header ─────────────────────────────────────────────── */
+        .page-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+            color: #fff;
+            padding: 2rem 0 1.5rem;
+        }
+        .page-header h1 { font-size: 1.75rem; font-weight: 700; }
+        .page-header p  { opacity: .75; margin: 0; }
+
+        /* ── Holiday Mode Card ───────────────────────────────────────── */
+        .holiday-card {
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,.10);
+            overflow: hidden;
+        }
+        .holiday-card.mode-on  { background: linear-gradient(135deg, #ff4757, #c0392b); color: #fff; }
+        .holiday-card.mode-off { background: linear-gradient(135deg, #2f3542, #57606f); color: #fff; }
+        .holiday-icon { font-size: 3rem; opacity: .9; }
+        .holiday-badge-on  { background: rgba(255,255,255,.25); color: #fff; font-size: .85rem; }
+        .holiday-badge-off { background: rgba(255,255,255,.15); color: #fff; font-size: .85rem; }
+        .btn-holiday-toggle {
+            border-radius: 50px;
+            font-weight: 600;
+            padding: .55rem 2rem;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,.6);
+            color: #fff;
+            background: rgba(255,255,255,.15);
+            transition: background .2s, border-color .2s;
+        }
+        .btn-holiday-toggle:hover {
+            background: rgba(255,255,255,.3);
+            border-color: #fff;
+            color: #fff;
+        }
+
+        /* ── Table-type tabs ─────────────────────────────────────────── */
+        .type-tabs .nav-link {
+            border-radius: 50px;
+            padding: .45rem 1.5rem;
+            font-weight: 600;
+            color: #495057;
+            border: 2px solid transparent;
+            transition: all .2s;
+        }
+        .type-tabs .nav-link:hover { border-color: #dee2e6; background: #fff; }
+        .type-tabs .nav-link.active {
+            background: #0f3460;
+            color: #fff;
+            border-color: #0f3460;
+        }
+        .type-tabs .nav-link .badge-count {
+            font-size: .7rem;
+            padding: .2em .5em;
+            margin-left: .35rem;
+            border-radius: 50px;
+        }
+
+        /* ── Day-type section cards ──────────────────────────────────── */
+        .day-section {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.07);
+            overflow: hidden;
+        }
+        .day-section .card-header {
+            font-weight: 700;
+            font-size: 1rem;
+            border-bottom: none;
+            padding: 1rem 1.25rem .75rem;
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+        }
+        .day-section.weekday  .card-header { background: #e8f4fd; color: #0369a1; }
+        .day-section.weekend  .card-header { background: #fef3c7; color: #92400e; }
+        .day-section.holiday  .card-header { background: #fee2e2; color: #991b1b; }
+        .day-section .card-header .bi { font-size: 1.15rem; }
+
+        /* ── Price table ─────────────────────────────────────────────── */
+        .price-table { margin: 0; }
+        .price-table thead th {
+            background: #f8fafc;
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #64748b;
+            padding: .6rem 1.1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .price-table tbody tr { transition: background .15s; }
+        .price-table tbody tr:hover { background: #f8fafc; }
+        .price-table td { padding: .75rem 1.1rem; vertical-align: middle; }
+
+        .time-badge {
+            background: #e0e7ff;
+            color: #3730a3;
+            border-radius: 8px;
+            padding: .25em .7em;
+            font-size: .9rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .price-badge {
+            font-weight: 700;
+            color: #0f3460;
+            font-size: 1rem;
+        }
+
+        .btn-edit   { border-radius: 8px; padding: .3rem .75rem; font-size: .82rem; }
+        .btn-delete { border-radius: 8px; padding: .3rem .75rem; font-size: .82rem; }
+
+        /* ── Add-rule collapse form ───────────────────────────────────── */
+        .add-rule-form {
+            background: #f8fafc;
+            border-top: 1px dashed #cbd5e1;
+            padding: 1.1rem 1.25rem;
+        }
+        .add-rule-form label { font-size: .82rem; font-weight: 600; color: #475569; }
+        .add-rule-form .form-control,
+        .add-rule-form .form-select {
+            border-radius: 8px;
+            font-size: .9rem;
+        }
+        .btn-add-row {
+            border-radius: 8px;
+            font-size: .82rem;
+            font-weight: 600;
+            background: #e8f4fd;
+            color: #0369a1;
+            border: 1.5px dashed #7dd3fc;
+            padding: .5rem 1.1rem;
+            transition: all .2s;
+        }
+        .btn-add-row:hover { background: #bae6fd; border-color: #0369a1; }
+
+        /* ── Empty state ─────────────────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #94a3b8;
+        }
+        .empty-state .bi { font-size: 2rem; display: block; margin-bottom: .5rem; }
+
+        /* ── Flash alerts ────────────────────────────────────────────── */
+        .flash-container { position: sticky; top: 1rem; z-index: 1050; }
+        .alert { border-radius: 12px; border: none; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+
+        /* ── Modal ───────────────────────────────────────────────────── */
+        .modal-content { border-radius: 16px; border: none; }
+        .modal-header  { border-bottom: 1px solid #f1f5f9; }
+        .modal-footer  { border-top: 1px solid #f1f5f9; }
+        .modal-title   { font-weight: 700; color: #0f3460; }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ═══════════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="/admin">
+            <i class="bi bi-circle-fill text-warning me-1"></i>Quản Lý Quán Bida
+        </a>
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin">
+                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/tables">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Quản lý bàn
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/admin/prices">
+                        <i class="bi bi-currency-dollar me-1"></i>Quản lý giá
+                    </a>
+                </li>
+                <li class="nav-item ms-2">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                            <i class="bi bi-box-arrow-right me-1"></i>Logout
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════ PAGE HEADER ══════════════════════════════════════════════ -->
+<div class="page-header">
+    <div class="container-xl px-4">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb mb-0" style="font-size:.82rem; opacity:.7">
+                <li class="breadcrumb-item"><a href="/admin" class="text-white-50 text-decoration-none">Admin</a></li>
+                <li class="breadcrumb-item active text-white">Quản lý giá</li>
+            </ol>
+        </nav>
+        <h1><i class="bi bi-tags-fill me-2 text-warning"></i>Quản Lý Bảng Giá</h1>
+        <p>Cấu hình giá thuê bàn theo loại bàn, loại ngày và khung giờ.</p>
+    </div>
+</div>
+
+<!-- ═══════════════ MAIN CONTENT ═════════════════════════════════════════════ -->
+<div class="container-xl px-4 py-4">
+
+    <!-- Flash Messages -->
+    <div class="flash-container mb-3" th:if="${success != null or error != null}">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- ── HOLIDAY MODE CARD ──────────────────────────────────────────────── -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="holiday-card card"
+                 th:classappend="${holidayMode} ? 'mode-on' : 'mode-off'">
+                <div class="card-body py-3 px-4">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center
+                                justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="holiday-icon">
+                                <i th:class="${holidayMode} ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill'"></i>
+                            </span>
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <h5 class="mb-0 fw-bold">Holiday Mode</h5>
+                                    <span class="badge rounded-pill fw-semibold px-3"
+                                          th:classappend="${holidayMode} ? 'holiday-badge-on' : 'holiday-badge-off'"
+                                          th:text="${holidayMode} ? 'ĐANG BẬT' : 'ĐANG TẮT'"></span>
+                                </div>
+                                <p class="mb-0" style="font-size:.9rem; opacity:.85;"
+                                   th:text="${holidayMode}
+                                       ? 'Hệ thống đang áp dụng giá NGÀY LỄ cho tất cả các bàn.'
+                                       : 'Hệ thống đang áp dụng giá bình thường (Ngày thường / Cuối tuần).'">
+                                </p>
+                            </div>
+                        </div>
+                        <form th:action="@{/admin/prices/holiday/toggle}" method="post"
+                              class="flex-shrink-0">
+                            <input type="hidden" name="tableType" th:value="${selectedType}"/>
+                            <button type="submit" class="btn btn-holiday-toggle">
+                                <i class="bi me-2"
+                                   th:classappend="${holidayMode} ? 'bi-toggle2-on' : 'bi-toggle2-off'"></i>
+                                <span th:text="${holidayMode} ? 'Tắt Holiday Mode' : 'Bật Holiday Mode'"></span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TABLE-TYPE TABS ────────────────────────────────────────────────── -->
+    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <ul class="nav type-tabs gap-2">
+            <li class="nav-item" th:each="tt : ${tableTypes}">
+                <a class="nav-link"
+                   th:classappend="${tt == selectedType} ? ' active' : ''"
+                   th:href="@{/admin/prices(tableType=${tt.name()})}"
+                   th:text="${tt == T(com.bida.entity.enums.TableType).POOL}   ? 'Bàn Pool'   :
+                             (tt == T(com.bida.entity.enums.TableType).CAROM  ? 'Bàn Carom'  :
+                              'Bàn VIP')">
+                </a>
+            </li>
+        </ul>
+        <span class="text-muted" style="font-size:.82rem;">
+            <i class="bi bi-info-circle me-1"></i>Chọn loại bàn để xem &amp; chỉnh giá
+        </span>
+    </div>
+
+    <!-- ── DAY-TYPE SECTIONS ──────────────────────────────────────────────── -->
+    <div class="row g-4">
+
+        <!-- Lặp qua 3 loại ngày -->
+        <div class="col-12" th:each="dt : ${dayTypes}">
+            <div class="day-section card"
+                 th:classappend="${dt.name() == 'WEEKDAY'} ? ' weekday' :
+                                 (${dt.name() == 'WEEKEND'} ? ' weekend' : ' holiday')">
+
+                <!-- Card Header -->
+                <div class="card-header">
+                    <i class="bi"
+                       th:classappend="${dt.name() == 'WEEKDAY'} ? ' bi-calendar-week' :
+                                       (${dt.name() == 'WEEKEND'} ? ' bi-calendar2-heart' : ' bi-balloon-heart-fill')"></i>
+                    <span th:text="${dt.name() == 'WEEKDAY'} ? 'Ngày Thường' :
+                                   (dt.name() == 'WEEKEND'   ? 'Cuối Tuần'   : 'Ngày Lễ')"></span>
+                    <span class="badge rounded-pill ms-auto px-3"
+                          th:classappend="${dt.name() == 'WEEKDAY'} ? ' bg-primary' :
+                                          (${dt.name() == 'WEEKEND'} ? ' bg-warning text-dark' : ' bg-danger')"
+                          th:text="${rulesMap[dt] != null} ? ${rulesMap[dt].size()} + ' khung giờ' : '0 khung giờ'">
+                    </span>
+                </div>
+
+                <!-- Price Table -->
+                <div class="table-responsive"
+                     th:if="${rulesMap[dt] != null and !#lists.isEmpty(rulesMap[dt])}">
+                    <table class="table price-table mb-0">
+                        <thead>
+                        <tr>
+                            <th style="width:220px"><i class="bi bi-clock me-1"></i>Khung Giờ</th>
+                            <th><i class="bi bi-cash-stack me-1"></i>Giá / Giờ</th>
+                            <th style="width:160px" class="text-center">Thao Tác</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="rule : ${rulesMap[dt]}">
+                            <td>
+                                <span class="time-badge">
+                                    <i class="bi bi-clock me-1"></i>
+                                    <span th:text="${#temporals.format(rule.startTime,'HH:mm')}"></span>
+                                    &nbsp;–&nbsp;
+                                    <span th:text="${#temporals.format(rule.endTime,'HH:mm')}"></span>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="price-badge"
+                                      th:text="${#numbers.formatDecimal(rule.pricePerHour, 0, 'COMMA', 0, 'POINT')} + ' đ'">
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <!-- Sửa -->
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-primary btn-edit me-1"
+                                        th:data-id="${rule.id}"
+                                        th:data-start="${#temporals.format(rule.startTime,'HH:mm')}"
+                                        th:data-end="${#temporals.format(rule.endTime,'HH:mm')}"
+                                        th:data-price="${rule.pricePerHour}"
+                                        th:data-tabletype="${selectedType}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editModal"
+                                        onclick="fillEditModal(this)">
+                                    <i class="bi bi-pencil-fill me-1"></i>Sửa
+                                </button>
+                                <!-- Xóa -->
+                                <form th:action="@{'/admin/prices/' + ${rule.id} + '/delete'}"
+                                      method="post" class="d-inline"
+                                      onsubmit="return confirmDelete(this)">
+                                    <input type="hidden" name="tableType" th:value="${selectedType}"/>
+                                    <button type="submit" class="btn btn-sm btn-outline-danger btn-delete">
+                                        <i class="bi bi-trash3-fill me-1"></i>Xóa
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty state -->
+                <div class="empty-state"
+                     th:if="${rulesMap[dt] == null or #lists.isEmpty(rulesMap[dt])}">
+                    <i class="bi bi-inbox"></i>
+                    <span>Chưa có khung giờ nào. Thêm mới bên dưới.</span>
+                </div>
+
+                <!-- Add-rule collapse trigger -->
+                <div class="px-3 pb-2 pt-1 border-top"
+                     style="background:#fff;">
+                    <button class="btn btn-add-row w-100"
+                            type="button"
+                            data-bs-toggle="collapse"
+                            th:data-bs-target="${'#addForm-' + dt.name()}">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        Thêm khung giờ mới
+                        <span th:text="${dt.name() == 'WEEKDAY'} ? '(Ngày Thường)' :
+                                       (dt.name() == 'WEEKEND'   ? '(Cuối Tuần)'   : '(Ngày Lễ)')"></span>
+                    </button>
+                </div>
+
+                <!-- Collapse Form -->
+                <div class="collapse" th:id="${'addForm-' + dt.name()}">
+                    <form class="add-rule-form" method="post" th:action="@{/admin/prices}">
+                        <input type="hidden" name="tableType" th:value="${selectedType}"/>
+                        <input type="hidden" name="dayType" th:value="${dt.name()}"/>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">
+                                    <i class="bi bi-clock-history me-1"></i>Giờ bắt đầu
+                                </label>
+                                <input type="time" name="startTime" class="form-control"
+                                       required placeholder="08:00"/>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">
+                                    <i class="bi bi-clock-fill me-1"></i>Giờ kết thúc
+                                </label>
+                                <input type="time" name="endTime" class="form-control"
+                                       required placeholder="12:00"/>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <label class="form-label">
+                                    <i class="bi bi-cash me-1"></i>Giá / giờ (VND)
+                                </label>
+                                <input type="number" name="pricePerHour" class="form-control"
+                                       min="1000" step="1000" required placeholder="50000"/>
+                            </div>
+                            <div class="col-sm-6 col-md-3">
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill fw-semibold">
+                                    <i class="bi bi-plus-lg me-1"></i>Thêm
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div><!-- /row -->
+</div><!-- /container -->
+
+<!-- ═══════════════ EDIT MODAL ════════════════════════════════════════════════ -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header px-4 pt-4 pb-3">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>Chỉnh Sửa Bảng Giá
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="editForm" method="post" action="#">
+                <input type="hidden" name="tableType" id="editTableType"/>
+
+                <div class="modal-body px-4 pb-2">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-clock-history me-1"></i>Giờ Bắt Đầu
+                            </label>
+                            <input type="time" id="editStartTime" name="startTime"
+                                   class="form-control" required/>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-clock-fill me-1"></i>Giờ Kết Thúc
+                            </label>
+                            <input type="time" id="editEndTime" name="endTime"
+                                   class="form-control" required/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-cash-stack me-1"></i>Giá / Giờ (VND)
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="editPrice" name="pricePerHour"
+                                       class="form-control" min="1000" step="1000" required/>
+                                <span class="input-group-text">đ</span>
+                            </div>
+                            <div class="form-text" id="editPricePreview"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer px-4 pb-4 pt-2">
+                    <button type="button" class="btn btn-light px-4 rounded-pill"
+                            data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold">
+                        <i class="bi bi-check-lg me-1"></i>Lưu Thay Đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ SCRIPTS ════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Điền dữ liệu vào Edit Modal ──────────────────────────────────────────
+    function fillEditModal(btn) {
+        const id        = btn.dataset.id;
+        const start     = btn.dataset.start;
+        const end       = btn.dataset.end;
+        const price     = btn.dataset.price;
+        const tableType = btn.dataset.tabletype;
+
+        document.getElementById('editStartTime').value  = start;
+        document.getElementById('editEndTime').value    = end;
+        document.getElementById('editPrice').value      = price;
+        document.getElementById('editTableType').value  = tableType;
+
+        // action URL
+        document.getElementById('editForm').action = `/admin/prices/${id}/edit`;
+
+        updatePricePreview(price);
+    }
+
+    // ── Preview giá định dạng VND ─────────────────────────────────────────────
+    function updatePricePreview(val) {
+        const preview = document.getElementById('editPricePreview');
+        if (!val || isNaN(val)) { preview.textContent = ''; return; }
+        const fmt = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+        preview.innerHTML = `<span class="text-primary fw-semibold">${fmt} / giờ</span>`;
+    }
+
+    document.getElementById('editPrice')?.addEventListener('input', function () {
+        updatePricePreview(this.value);
+    });
+
+    // ── Xác nhận xóa ─────────────────────────────────────────────────────────
+    function confirmDelete(form) {
+        return confirm('Bạn có chắc muốn xóa khung giờ này không?\nThao tác này không thể hoàn tác.');
+    }
+
+    // ── Auto-dismiss flash alerts sau 4 giây ─────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.alert').forEach(el => {
+            setTimeout(() => {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(el);
+                bsAlert?.close();
+            }, 4000);
+        });
+    });
+</script>
+</body>
+</html>

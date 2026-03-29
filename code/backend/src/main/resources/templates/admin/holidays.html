@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Quản Lý Ngày Lễ | Admin Quán Bida</title>
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"/>
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+          rel="stylesheet"/>
+
+    <style>
+        /* ── Layout ───────────────────────────────────────────────── */
+        body {
+            background: #f4f6fb;
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ──────────────────────────────────────────────── */
+        .navbar-brand { font-weight: 700; font-size: 1.25rem; letter-spacing: .5px; }
+        .navbar-dark { background: #1a1a2e !important; }
+        .navbar-dark .nav-link { color: rgba(255,255,255,.75) !important; }
+        .navbar-dark .nav-link:hover,
+        .navbar-dark .nav-link.active { color: #fff !important; }
+
+        /* ── Page header ─────────────────────────────────────────── */
+        .page-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+            color: #fff;
+            padding: 2rem 0 1.5rem;
+        }
+        .page-header h1 { font-size: 1.75rem; font-weight: 700; }
+        .page-header p  { opacity: .75; margin: 0; }
+
+        /* ── Cards ───────────────────────────────────────────────── */
+        .card { border: none; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
+
+        /* ── Table ───────────────────────────────────────────────── */
+        .holiday-table thead th {
+            background: #f8fafc;
+            font-size: .8rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #64748b;
+            padding: .6rem 1.1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .holiday-table tbody tr { transition: background .15s; }
+        .holiday-table tbody tr:hover { background: #f8fafc; }
+        .holiday-table td { padding: .75rem 1.1rem; vertical-align: middle; }
+
+        .btn-edit { border-radius: 8px; padding: .3rem .75rem; font-size: .82rem; }
+        .btn-delete { border-radius: 8px; padding: .3rem .75rem; font-size: .82rem; }
+
+        /* ── Flash alerts ────────────────────────────────────────── */
+        .flash-container { position: sticky; top: 1rem; z-index: 1050; }
+        .alert { border-radius: 12px; border: none; box-shadow: 0 4px 16px rgba(0,0,0,.12); }
+
+        /* ── Modal ───────────────────────────────────────────────── */
+        .modal-content { border-radius: 16px; border: none; }
+        .modal-header  { border-bottom: 1px solid #f1f5f9; }
+        .modal-footer  { border-top: 1px solid #f1f5f9; }
+        .modal-title   { font-weight: 700; color: #0f3460; }
+
+        /* ── Add form ────────────────────────────────────────────── */
+        .add-form {
+            background: #f8fafc;
+            border-radius: 14px;
+            border: 1.5px dashed #cbd5e1;
+        }
+        .add-form label { font-size: .82rem; font-weight: 600; color: #475569; }
+
+        /* ── Info card ───────────────────────────────────────────── */
+        .info-card {
+            background: linear-gradient(135deg, #fef3c7, #fff7ed);
+            border: 1px solid #fbbf24;
+            border-radius: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVBAR ══════════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" th:href="@{/dashboard}">
+            <i class="bi bi-circle-fill text-warning me-1"></i>Quản Lý Quán Bida
+        </a>
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav ms-auto align-items-center gap-1">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/dashboard}">
+                        <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/tables}">
+                        <i class="bi bi-grid-3x3-gap me-1"></i>Bàn
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/prices}">
+                        <i class="bi bi-currency-dollar me-1"></i>Giá
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/products}">
+                        <i class="bi bi-box-seam me-1"></i>Sản phẩm
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/invoices}">
+                        <i class="bi bi-receipt me-1"></i>Hóa đơn
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/customers}">
+                        <i class="bi bi-people me-1"></i>Khách hàng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/admin/holidays}">
+                        <i class="bi bi-calendar-heart me-1"></i>Ngày lễ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/staff}">
+                        <i class="bi bi-person-badge me-1"></i>Nhân viên
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/reports}">
+                        <i class="bi bi-bar-chart-line me-1"></i>Báo cáo
+                    </a>
+                </li>
+                <li class="nav-item ms-2">
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                            <i class="bi bi-box-arrow-right me-1"></i>Thoát
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════ PAGE HEADER ═════════════════════════════════════════════ -->
+<div class="page-header">
+    <div class="container-xl px-4">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb mb-0" style="font-size:.82rem; opacity:.7">
+                <li class="breadcrumb-item"><a th:href="@{/dashboard}" class="text-white-50 text-decoration-none">Admin</a></li>
+                <li class="breadcrumb-item active text-white">Quản lý ngày lễ</li>
+            </ol>
+        </nav>
+        <h1><i class="bi bi-calendar-heart-fill me-2 text-warning"></i>Quản Lý Ngày Lễ</h1>
+        <p>Cấu hình lịch ngày lễ để tự động áp dụng giá ngày lễ.</p>
+    </div>
+</div>
+
+<!-- ═══════════════ MAIN CONTENT ════════════════════════════════════════════ -->
+<div class="container-xl px-4 py-4">
+
+    <!-- Flash Messages -->
+    <div class="flash-container mb-3" th:if="${success != null or error != null}">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- ── ADD HOLIDAY COLLAPSE ──────────────────────────────────────────── -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 fw-bold text-secondary">
+            <i class="bi bi-list-ul me-1"></i>Danh sách ngày lễ
+        </h5>
+        <button class="btn btn-primary rounded-pill px-4" type="button"
+                data-bs-toggle="collapse" data-bs-target="#addHolidayForm">
+            <i class="bi bi-plus-lg me-1"></i>Thêm ngày lễ
+        </button>
+    </div>
+
+    <div class="collapse mb-4" id="addHolidayForm">
+        <div class="add-form p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-plus-circle me-2 text-primary"></i>Thêm ngày lễ mới</h6>
+            <form th:action="@{/admin/holidays}" method="post">
+                <div class="row g-3 align-items-end">
+                    <div class="col-sm-6 col-md-4">
+                        <label class="form-label">
+                            <i class="bi bi-tag me-1"></i>Tên ngày lễ
+                        </label>
+                        <input type="text" name="name" class="form-control"
+                               placeholder="VD: Tết Nguyên Đán" required/>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <label class="form-label">
+                            <i class="bi bi-calendar-date me-1"></i>Ngày
+                        </label>
+                        <input type="date" name="date" class="form-control" required/>
+                    </div>
+                    <div class="col-sm-6 col-md-3">
+                        <div class="form-check mt-md-4 pt-md-1">
+                            <input class="form-check-input" type="checkbox"
+                                   name="recurring" id="addRecurring" value="true"/>
+                            <label class="form-check-label" for="addRecurring">
+                                <i class="bi bi-arrow-repeat me-1"></i>Lặp lại hàng năm
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-2">
+                        <button type="submit" class="btn btn-success w-100 rounded-pill fw-semibold">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── HOLIDAY TABLE ─────────────────────────────────────────────────── -->
+    <div class="card mb-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table holiday-table mb-0">
+                    <thead>
+                    <tr>
+                        <th style="width:60px">#</th>
+                        <th><i class="bi bi-tag me-1"></i>Tên ngày lễ</th>
+                        <th style="width:160px"><i class="bi bi-calendar-date me-1"></i>Ngày</th>
+                        <th style="width:140px"><i class="bi bi-arrow-repeat me-1"></i>Lặp lại</th>
+                        <th style="width:160px" class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="holiday, iter : ${holidays}">
+                        <td class="text-muted fw-semibold" th:text="${iter.count}"></td>
+                        <td class="fw-semibold" th:text="${holiday.name}"></td>
+                        <td>
+                            <span class="badge bg-light text-dark border px-3 py-2"
+                                  style="font-size:.88rem;">
+                                <i class="bi bi-calendar3 me-1"></i>
+                                <span th:text="${#temporals.format(holiday.date, 'dd/MM/yyyy')}"></span>
+                            </span>
+                        </td>
+                        <td>
+                            <span th:if="${holiday.recurring}" class="badge bg-success px-3 py-2">
+                                <i class="bi bi-arrow-repeat me-1"></i>Hàng năm
+                            </span>
+                            <span th:if="${!holiday.recurring}" class="badge bg-secondary px-3 py-2">
+                                <i class="bi bi-calendar-x me-1"></i>Một lần
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <!-- Edit -->
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-primary btn-edit me-1"
+                                    th:data-id="${holiday.id}"
+                                    th:data-name="${holiday.name}"
+                                    th:data-date="${holiday.date}"
+                                    th:data-recurring="${holiday.recurring}"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editModal">
+                                <i class="bi bi-pencil-fill me-1"></i>Sửa
+                            </button>
+                            <!-- Delete -->
+                            <form th:action="@{'/admin/holidays/' + ${holiday.id} + '/delete'}"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('Xác nhận xóa ngày lễ này?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger btn-delete">
+                                    <i class="bi bi-trash3-fill me-1"></i>Xóa
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(holidays)}">
+                        <td colspan="5" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox d-block mb-2" style="font-size:2rem;"></i>
+                            Chưa có ngày lễ nào. Hãy thêm ngày lễ mới.
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-muted small">
+        <i class="bi bi-info-circle me-1"></i>
+        Tổng: <strong th:text="${#lists.size(holidays)}">0</strong> ngày lễ
+    </p>
+
+    <!-- ── INFO CARD ─────────────────────────────────────────────────────── -->
+    <div class="info-card p-4 mt-3">
+        <h6 class="fw-bold mb-2">
+            <i class="bi bi-lightbulb-fill me-2 text-warning"></i>Thông tin về ngày lễ tại Việt Nam
+        </h6>
+        <p class="mb-2 small">
+            Hệ thống sẽ tự động áp dụng <strong>bảng giá ngày lễ</strong> vào các ngày được cấu hình ở đây.
+            Các ngày lễ phổ biến:
+        </p>
+        <ul class="small mb-0">
+            <li><strong>Tết Dương Lịch</strong> – 01/01 (lặp lại hàng năm)</li>
+            <li><strong>Tết Nguyên Đán</strong> – Âm lịch 29/12 đến 05/01 (cập nhật hàng năm)</li>
+            <li><strong>Giỗ Tổ Hùng Vương</strong> – 10/03 Âm lịch (cập nhật hàng năm)</li>
+            <li><strong>Ngày Giải Phóng</strong> – 30/04 (lặp lại hàng năm)</li>
+            <li><strong>Ngày Quốc Tế Lao Động</strong> – 01/05 (lặp lại hàng năm)</li>
+            <li><strong>Quốc Khánh</strong> – 02/09 (lặp lại hàng năm)</li>
+        </ul>
+        <p class="mt-2 mb-0 small text-muted">
+            <i class="bi bi-exclamation-circle me-1"></i>
+            Các ngày lễ theo Âm lịch cần được cập nhật thủ công mỗi năm vì ngày Dương lịch thay đổi.
+        </p>
+    </div>
+</div>
+
+<!-- ═══════════════ EDIT MODAL ═══════════════════════════════════════════════ -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header px-4 pt-4 pb-3">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2 text-primary"></i>Chỉnh Sửa Ngày Lễ
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="editForm" method="post" action="#">
+                <div class="modal-body px-4 pb-2">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-tag me-1"></i>Tên ngày lễ
+                            </label>
+                            <input type="text" id="editName" name="name"
+                                   class="form-control" required/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
+                                <i class="bi bi-calendar-date me-1"></i>Ngày
+                            </label>
+                            <input type="date" id="editDate" name="date"
+                                   class="form-control" required/>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox"
+                                       name="recurring" id="editRecurring" value="true"/>
+                                <label class="form-check-label" for="editRecurring">
+                                    <i class="bi bi-arrow-repeat me-1"></i>Lặp lại hàng năm
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer px-4 pb-4 pt-2">
+                    <button type="button" class="btn btn-light px-4 rounded-pill"
+                            data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary px-4 rounded-pill fw-semibold">
+                        <i class="bi bi-check-lg me-1"></i>Lưu Thay Đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ SCRIPTS ═══════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ── Fill edit modal ──────────────────────────────────────────────────────
+    document.getElementById('editModal').addEventListener('show.bs.modal', function (e) {
+        const btn = e.relatedTarget;
+        const id        = btn.getAttribute('data-id');
+        const name      = btn.getAttribute('data-name');
+        const date      = btn.getAttribute('data-date');
+        const recurring = btn.getAttribute('data-recurring') === 'true';
+
+        document.getElementById('editForm').action = '/admin/holidays/' + id + '/edit';
+        document.getElementById('editName').value = name;
+        document.getElementById('editDate').value = date;
+        document.getElementById('editRecurring').checked = recurring;
+    });
+
+    // ── Auto-dismiss flash alerts ────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.alert').forEach(el => {
+            setTimeout(() => {
+                const bsAlert = bootstrap.Alert.getOrCreateInstance(el);
+                bsAlert?.close();
+            }, 4000);
+        });
+    });
+</script>
+</body>
+</html>

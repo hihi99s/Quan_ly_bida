@@ -1,0 +1,70 @@
+# ============================================================
+#   .gitignore – Maven / Java / Spring Boot / IDE
+# ============================================================
+
+# ----- Build output ------------------------------------------
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# ----- Compiled class files ----------------------------------
+*.class
+
+# ----- Package files -----------------------------------------
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# ----- Maven wrapper (keep the jar, ignore native) -----------
+.mvn/timing.properties
+.mvn/wrapper/MavenWrapperDownloader.java
+
+# ----- Spring Boot / Application secrets ---------------------
+src/main/resources/application-local.properties
+src/main/resources/application-prod.properties
+src/main/resources/application-secret.properties
+
+# ----- IntelliJ IDEA -----------------------------------------
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ----- VS Code -----------------------------------------------
+.vscode/
+
+# ----- Eclipse / STS -----------------------------------------
+.settings/
+.project
+.classpath
+.springBeans
+.sts4-cache
+bin/
+
+# ----- NetBeans ----------------------------------------------
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# ----- OS generated ------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ----- Logs --------------------------------------------------
+*.log
+logs/
+
+# ----- Node / Frontend (nếu tích hợp sau) --------------------
+node_modules/
+npm-debug.log*

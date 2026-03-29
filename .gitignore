@@ -1,0 +1,44 @@
+# ----- Build output ------------------------------------------
+target/
+out/
+bin/
+
+# ----- Compiled class files ----------------------------------
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+
+# ----- IntelliJ IDEA -----------------------------------------
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# ----- VS Code -----------------------------------------------
+.vscode/
+
+# ----- Claude / Agent Settings -------------------------------
+.claude/
+
+# ----- OS generated ------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ----- Logs --------------------------------------------------
+*.log
+logs/
+
+# ----- Node / Frontend ---------------------------------------
+node_modules/
+npm-debug.log*
+
+# ----- Database / Local --------------------------------------
+*.db
+*.sqlite
