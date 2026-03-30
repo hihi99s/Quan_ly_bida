@@ -37,6 +37,97 @@ public class SessionService {
     private final ReservationRepository reservationRepository;
     private final CustomerRepository customerRepository;
 
+    // ============ HELPER METHODS ============
+
+    /**
+     * Validate table exists + handle not found.
+     * Tách từ pattern lặp lại ở startSession, endSession, pauseSession, resumeSession, setMaintenance.
+     */
+    private BilliardTable validateAndGetTable(Long tableId) {
+        return tableRepository.findById(tableId)
+                .orElseThrow(() -> new RuntimeException("Khong tim thay ban: " + tableId));
+    }
+
+    /**
+     * Calculate paused time & update session.
+     * Sử dụng ở: endSession (lines 116-118), resumeSession (lines 206-208).
+     * Tách để xóa duplicate logic.
+     */
+    private void updatePausedMinutes(Session session, LocalDateTime pauseStart) {
+        if (pauseStart != null) {
+            long pausedMins = ChronoUnit.MINUTES.between(pauseStart, LocalDateTime.now());
+            session.setTotalPausedMinutes(session.getTotalPausedMinutes() + (int) pausedMins);
+            session.setPauseStart(null);
+        }
+    }
+
+    /**
+     * Build single TableStatusDTO from table + optional session.
+     * Tách từ getAllTableStatuses để giảm complexity (từ 65 lines → ~40 lines).
+     * Xử lý cả PLAYING/PAUSED cases và RESERVED case.
+     */
+    private TableStatusDTO buildTableStatusDTO(BilliardTable table, Optional<Session> activeSession) {
+        TableStatusDTO.TableStatusDTOBuilder dto = TableStatusDTO.builder()
+                .id(table.getId())
+                .name(table.getName())
+                .tableType(table.getTableType().name())
+                .status(table.getStatus().name())
+                .currentAmount(BigDecimal.ZERO)
+                .playingMinutes(0)
+                .orderCount(0)
+                .totalPausedMinutes(0);
+
+        if (table.getStatus() == TableStatus.PLAYING || table.getStatus() == TableStatus.PAUSED) {
+            if (activeSession.isPresent()) {
+                Session session = activeSession.get();
+                dto.sessionId(session.getId());
+                dto.startTime(session.getStartTime());
+                dto.totalPausedMinutes(session.getTotalPausedMinutes());
+
+                // Playing minutes (tru pause)
+                long totalMins = ChronoUnit.MINUTES.between(session.getStartTime(), LocalDateTime.now());
+                long pausedMins = session.getTotalPausedMinutes();
+                if (session.getPauseStart() != null) {
+                    pausedMins += ChronoUnit.MINUTES.between(session.getPauseStart(), LocalDateTime.now());
+                }
+                dto.playingMinutes(Math.max(0, totalMins - pausedMins));
+
+                // Tien tam tinh
+                try {
+                    dto.currentAmount(billingCalculator.calculateCurrentAmount(session));
+                } catch (Exception e) {
+                    dto.currentAmount(BigDecimal.ZERO);
+                }
+
+                // So luong order
+                try {
+                    dto.orderCount((int) orderItemRepository.countBySession(session));
+                } catch (Exception e) {
+                    dto.orderCount(0);
+                }
+
+                // Customer info
+                if (session.getCustomer() != null) {
+                    dto.customerName(session.getCustomer().getName());
+                    dto.customerPhone(session.getCustomer().getPhone());
+                }
+            }
+        } else if (table.getStatus() == TableStatus.RESERVED) {
+            // Hien thi thong tin dat ban
+            List<Reservation> pending = reservationRepository
+                    .findByTableAndStatus(table, ReservationStatus.PENDING);
+            if (!pending.isEmpty()) {
+                Reservation r = pending.get(0);
+                dto.reservationCustomerName(r.getCustomerName());
+                dto.reservationTime(r.getReservedTime());
+            }
+        }
+
+        return dto.build();
+    }
+
+    // ============ PUBLIC METHODS ============
+
     /**
      * Bat dau phien choi.
      */
@@ -48,8 +139,7 @@ public class SessionService {
      * Bat dau phien choi (co the gan customer).
      */
     public Session startSession(Long tableId, String staffUsername, Long customerId) {
-        BilliardTable table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay ban: " + tableId));
+        BilliardTable table = validateAndGetTable(tableId);
 
         if (table.getStatus() == TableStatus.PLAYING || table.getStatus() == TableStatus.PAUSED) {
             throw new RuntimeException("Ban dang duoc su dung");
@@ -105,17 +195,14 @@ public class SessionService {
      * FIX: Thêm error handling + fallback khi không tìm thấy PriceRule
      */
     public Session endSession(Long tableId, String staffUsername) {
-        BilliardTable table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay ban: " + tableId));
+        BilliardTable table = validateAndGetTable(tableId);
 
         Session session = sessionRepository.findByTableAndStatus(table, SessionStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("Khong co phien choi nao dang hoat dong tren ban nay"));
 
         // Neu dang PAUSED → resume truoc khi ket thuc
         if (table.getStatus() == TableStatus.PAUSED && session.getPauseStart() != null) {
-            long pausedMins = ChronoUnit.MINUTES.between(session.getPauseStart(), LocalDateTime.now());
-            session.setTotalPausedMinutes(session.getTotalPausedMinutes() + (int) pausedMins);
-            session.setPauseStart(null);
+            updatePausedMinutes(session, session.getPauseStart());
         }
 
         session.setEndTime(LocalDateTime.now());
@@ -168,8 +255,7 @@ public class SessionService {
      * Phase 2: Tam dung phien choi (billing dung tinh tien).
      */
     public Session pauseSession(Long tableId) {
-        BilliardTable table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay ban: " + tableId));
+        BilliardTable table = validateAndGetTable(tableId);
 
         if (table.getStatus() != TableStatus.PLAYING) {
             throw new RuntimeException("Ban khong dang choi de tam dung");
@@ -192,8 +278,7 @@ public class SessionService {
      * Phase 2: Tiep tuc phien choi sau khi tam dung.
      */
     public Session resumeSession(Long tableId) {
-        BilliardTable table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay ban: " + tableId));
+        BilliardTable table = validateAndGetTable(tableId);
 
         if (table.getStatus() != TableStatus.PAUSED) {
             throw new RuntimeException("Ban khong dang tam dung");
@@ -203,9 +288,7 @@ public class SessionService {
                 .orElseThrow(() -> new RuntimeException("Khong co phien choi active"));
 
         if (session.getPauseStart() != null) {
-            long pausedMins = ChronoUnit.MINUTES.between(session.getPauseStart(), LocalDateTime.now());
-            session.setTotalPausedMinutes(session.getTotalPausedMinutes() + (int) pausedMins);
-            session.setPauseStart(null);
+            updatePausedMinutes(session, session.getPauseStart());
         }
 
         table.setStatus(TableStatus.PLAYING);
@@ -222,8 +305,7 @@ public class SessionService {
      * Phase 2: Bat/tat che do bao tri ban.
      */
     public void setMaintenance(Long tableId, boolean enable) {
-        BilliardTable table = tableRepository.findById(tableId)
-                .orElseThrow(() -> new RuntimeException("Khong tim thay ban: " + tableId));
+        BilliardTable table = validateAndGetTable(tableId);
 
         if (enable) {
             if (table.getStatus() == TableStatus.PLAYING || table.getStatus() == TableStatus.PAUSED) {
@@ -276,66 +358,13 @@ public class SessionService {
         List<TableStatusDTO> result = new ArrayList<>();
 
         for (BilliardTable table : tables) {
-            TableStatusDTO.TableStatusDTOBuilder dto = TableStatusDTO.builder()
-                    .id(table.getId())
-                    .name(table.getName())
-                    .tableType(table.getTableType().name())
-                    .status(table.getStatus().name())
-                    .currentAmount(BigDecimal.ZERO)
-                    .playingMinutes(0)
-                    .orderCount(0)
-                    .totalPausedMinutes(0);
-
+            // Chỉ query repository nếu bàn đang chơi hoặc tạm dừng
+            Optional<Session> activeSession = Optional.empty();
             if (table.getStatus() == TableStatus.PLAYING || table.getStatus() == TableStatus.PAUSED) {
-                Optional<Session> activeSession = sessionRepository
-                        .findByTableAndStatus(table, SessionStatus.ACTIVE);
-
-                if (activeSession.isPresent()) {
-                    Session session = activeSession.get();
-                    dto.sessionId(session.getId());
-                    dto.startTime(session.getStartTime());
-                    dto.totalPausedMinutes(session.getTotalPausedMinutes());
-
-                    // Playing minutes (tru pause)
-                    long totalMins = ChronoUnit.MINUTES.between(session.getStartTime(), LocalDateTime.now());
-                    long pausedMins = session.getTotalPausedMinutes();
-                    if (session.getPauseStart() != null) {
-                        pausedMins += ChronoUnit.MINUTES.between(session.getPauseStart(), LocalDateTime.now());
-                    }
-                    dto.playingMinutes(Math.max(0, totalMins - pausedMins));
-
-                    // Tien tam tinh
-                    try {
-                        dto.currentAmount(billingCalculator.calculateCurrentAmount(session));
-                    } catch (Exception e) {
-                        dto.currentAmount(BigDecimal.ZERO);
-                    }
-
-                    // So luong order
-                    try {
-                        dto.orderCount((int) orderItemRepository.countBySession(session));
-                    } catch (Exception e) {
-                        dto.orderCount(0);
-                    }
-
-                    // Customer info
-                    if (session.getCustomer() != null) {
-                        dto.customerName(session.getCustomer().getName());
-                        dto.customerPhone(session.getCustomer().getPhone());
-                    }
-                }
-            } else if (table.getStatus() == TableStatus.RESERVED) {
-                // Hien thi thong tin dat ban
-                List<Reservation> pending = reservationRepository
-                        .findByTableAndStatus(table, ReservationStatus.PENDING);
-                if (!pending.isEmpty()) {
-                    Reservation r = pending.get(0);
-                    dto.reservationCustomerName(r.getCustomerName());
-                    dto.reservationTime(r.getReservedTime());
-                }
+                activeSession = sessionRepository.findByTableAndStatus(table, SessionStatus.ACTIVE);
             }
 
-            result.add(dto.build());
+            result.add(buildTableStatusDTO(table, activeSession));
         }
 
         return result;

@@ -11,6 +11,7 @@ import com.bida.entity.Session;
 import com.bida.entity.enums.DayType;
 import com.bida.entity.enums.TableType;
 import com.bida.repository.AppSettingRepository;
+import com.bida.repository.HolidayCalendarRepository;
 import com.bida.repository.PriceRuleRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -60,6 +61,9 @@ class BillingCalculatorTest {
 
     @Mock
     private AppSettingRepository appSettingRepository;
+
+    @Mock
+    private HolidayCalendarRepository holidayCalendarRepository;
 
     /**
      * SegmentSplitter là pure logic (không có dependency DB),
@@ -128,7 +132,7 @@ class BillingCalculatorTest {
         com.bida.billing.strategy.TimeSlotPricingStrategy strategy =
                 new com.bida.billing.strategy.TimeSlotPricingStrategy(priceRuleRepository, segmentSplitter);
 
-        billingCalculator = new BillingCalculator(strategy, appSettingRepository);
+        billingCalculator = new BillingCalculator(strategy, appSettingRepository, holidayCalendarRepository);
 
         // Mặc định: không phải ngày lễ
         lenient().when(appSettingRepository.findBySettingKey("HOLIDAY_MODE"))
