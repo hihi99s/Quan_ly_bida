@@ -36,6 +36,7 @@ public class SessionService {
     private final OrderItemRepository orderItemRepository;
     private final ReservationRepository reservationRepository;
     private final CustomerRepository customerRepository;
+    private final DiscountCodeService discountCodeService;
 
     // ============ HELPER METHODS ============
 
@@ -147,6 +148,9 @@ public class SessionService {
         if (table.getStatus() == TableStatus.MAINTENANCE) {
             throw new RuntimeException("Ban dang bao tri");
         }
+        if (table.getStatus() == TableStatus.DISABLED) {
+            throw new RuntimeException("Ban da ngung hoat dong");
+        }
 
         User staff = userRepository.findByUsername(staffUsername)
                 .orElseThrow(() -> new RuntimeException("Khong tim thay nhan vien: " + staffUsername));
@@ -194,7 +198,24 @@ public class SessionService {
      *
      * FIX: Thêm error handling + fallback khi không tìm thấy PriceRule
      */
-    public Session endSession(Long tableId, String staffUsername) {
+    public Session endSession(Long tableId, String staffUsername, BigDecimal manualTableCharge) {
+        return endSession(tableId, staffUsername, manualTableCharge, null);
+    }
+
+    /**
+     * NEW (Phase 2): Ket thuc phien choi voi ho tro discount code.
+     * @param tableId - ID cua ban
+     * @param staffUsername - username cua nhan vien
+     * @param manualTableCharge - (tuy chon) gia ban tu cong
+     * @param discountCodeStr - (tuy chon) ma giam gia
+     */
+    public Session endSession(Long tableId, String staffUsername, BigDecimal manualTableCharge, String discountCodeStr) {
+        // Phase 2: Validate discount code EARLY — before any DB writes.
+        // Prevents transaction rollback-only leak when code is invalid.
+        if (discountCodeStr != null && !discountCodeStr.trim().isEmpty()) {
+            discountCodeService.findAndValidate(discountCodeStr);
+        }
+
         BilliardTable table = validateAndGetTable(tableId);
 
         Session session = sessionRepository.findByTableAndStatus(table, SessionStatus.ACTIVE)
@@ -237,10 +258,10 @@ public class SessionService {
         table.setStatus(TableStatus.AVAILABLE);
         tableRepository.save(table);
 
-        // Tu dong tao Invoice (Phase 2)
+        // Tu dong tao Invoice (voi optional manual price override + discount code)
         User staff = userRepository.findByUsername(staffUsername).orElse(session.getStaff());
         try {
-            invoiceService.createInvoice(session, staff);
+            invoiceService.createInvoice(session, staff, manualTableCharge, discountCodeStr);
         } catch (Exception e) {
             log.warn("Loi tao invoice cho session #{}: {}", session.getId(), e.getMessage());
         }
@@ -249,6 +270,13 @@ public class SessionService {
                 table.getName(), result.getTotalAmount(), session.getId());
 
         return session;
+    }
+
+    /**
+     * Overload: backward compatibility - goi ket thuc phien ma khong co gia thu cong
+     */
+    public Session endSession(Long tableId, String staffUsername) {
+        return endSession(tableId, staffUsername, null);
     }
 
     /**

@@ -72,6 +72,26 @@ src/main/java/com/bida/entity/
 
 ---
 
+### 🎟️ Mã Giảm Giá (Discount Code) - Phase 2
+```
+src/main/java/com/bida/service/
+└── DiscountCodeService.java                ← CRUD + validation + usage tracking
+
+src/main/java/com/bida/repository/
+└── DiscountCodeRepository.java             ← Query mã giảm giá
+
+src/main/java/com/bida/entity/
+└── DiscountCode.java                       ← Entity mã giảm giá
+
+src/main/java/com/bida/controller/admin/
+└── AdminDiscountCodeController.java        ← /admin/discount-codes (CRUD)
+```
+
+**Khi lỗi discount code:** "Mã bị reject" → DiscountCodeService.findAndValidate()
+**Khi lỗi delete code:** "Không xóa được mã" → InvoiceRepository.existsByDiscountCodeId()
+
+---
+
 ### 🔌 API REST
 ```
 src/main/java/com/bida/controller/api/

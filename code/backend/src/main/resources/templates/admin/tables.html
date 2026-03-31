@@ -44,6 +44,7 @@
                 <a class="nav-link" th:href="@{/admin/customers}"><i class="bi bi-people"></i> Khach hang</a>
                 <a class="nav-link" th:href="@{/admin/holidays}"><i class="bi bi-calendar-heart"></i> Ngay le</a>
                 <a class="nav-link" th:href="@{/admin/staff}"><i class="bi bi-person-badge"></i> Nhan vien</a>
+                <a class="nav-link" th:href="@{/admin/discount-codes}"><i class="bi bi-ticket"></i> Ma giam gia</a>
                 <a class="nav-link" th:href="@{/admin/reports}"><i class="bi bi-bar-chart-line"></i> Bao cao</a>
             </div>
             <div class="navbar-nav align-items-center gap-2">
@@ -141,6 +142,9 @@
                             <span th:if="${table.status.name() == 'MAINTENANCE'}" class="status-maintenance">
                                 <i class="bi bi-wrench me-1" style="font-size:0.5rem"></i>Bao tri
                             </span>
+                            <span th:if="${table.status.name() == 'DISABLED'}" class="status-maintenance" style="color:#999">
+                                <i class="bi bi-ban me-1" style="font-size:0.5rem"></i>Ngung hoat dong
+                            </span>
                         </td>
                         <td th:text="${#temporals.format(table.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
                         <td class="text-center">
@@ -151,11 +155,27 @@
                                     th:data-type="${table.tableType}">
                                 <i class="bi bi-pencil"></i>
                             </button>
+                            <form th:action="@{/admin/tables/{id}/disable(id=${table.id})}"
+                                  method="post" class="d-inline"
+                                  th:if="${table.status.name() == 'AVAILABLE'}">
+                                <button type="submit" class="btn btn-sm btn-outline-warning me-1"
+                                        title="Ngừng hoạt động bàn">
+                                    <i class="bi bi-pause-circle"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/admin/tables/{id}/enable(id=${table.id})}"
+                                  method="post" class="d-inline"
+                                  th:if="${table.status.name() == 'DISABLED'}">
+                                <button type="submit" class="btn btn-sm btn-outline-success me-1"
+                                        title="Kích hoạt lại bàn">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                            </form>
                             <form th:action="@{/admin/tables/{id}/delete(id=${table.id})}"
                                   method="post" class="d-inline"
                                   onsubmit="return confirm('Xác nhận xóa bàn này?')">
                                 <button type="submit" class="btn btn-sm btn-outline-danger"
-                                        th:disabled="${table.status.name() != 'AVAILABLE'}">
+                                        th:disabled="${table.status.name() != 'AVAILABLE' && table.status.name() != 'DISABLED'}">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -180,6 +200,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="editForm" method="post">
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Sửa thông tin bàn</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

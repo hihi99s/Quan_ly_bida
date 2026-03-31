@@ -142,6 +142,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/discount-codes}">
+                        <i class="bi bi-ticket me-1"></i>Ma giam gia
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" th:href="@{/admin/reports}">
                         <i class="bi bi-bar-chart-line me-1"></i>Bao cao
                     </a>
@@ -245,7 +250,8 @@
                     <th><i class="bi bi-person me-1"></i>Nhan vien</th>
                     <th class="text-end"><i class="bi bi-cash me-1"></i>Tien ban</th>
                     <th class="text-end"><i class="bi bi-cup-straw me-1"></i>Dich vu</th>
-                    <th class="text-end"><i class="bi bi-tag me-1"></i>Giam gia</th>
+                    <th class="text-end"><i class="bi bi-tag me-1"></i>Giam gia (thanh tich)</th>
+                    <th class="text-end"><i class="bi bi-ticket me-1"></i>Ma / Giam</th>
                     <th class="text-end"><i class="bi bi-cash-stack me-1"></i>Tong tien</th>
                     <th><i class="bi bi-calendar3 me-1"></i>Ngay</th>
                     <th class="text-center">Thao tac</th>
@@ -269,6 +275,13 @@
                     </td>
                     <td class="text-end amount-cell"
                         th:text="${#numbers.formatDecimal(invoice.discount, 0, 'COMMA', 0, 'POINT')} + ' d'">
+                    </td>
+                    <td class="text-end">
+                        <span th:if="${invoice.discountCode != null}" class="small">
+                            <span th:text="${invoice.discountCode.code}"></span><br>
+                            <span th:text="${#numbers.formatDecimal(invoice.codeDiscountAmount ?: 0, 0, 'COMMA', 0, 'POINT')} + ' d'" class="text-info"></span>
+                        </span>
+                        <span th:unless="${invoice.discountCode != null}" class="text-muted small">-</span>
                     </td>
                     <td class="text-end total-cell"
                         th:text="${#numbers.formatDecimal(invoice.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' d'">

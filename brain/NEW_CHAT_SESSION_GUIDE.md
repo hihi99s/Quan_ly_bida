@@ -5,6 +5,18 @@
 
 ---
 
+## 📌 LATEST STATUS
+
+**Last Session:** 2026-04-01  
+**What was done:** Bug fixes + Phase 2 Discount Code feature  
+**Current build:** ✅ PASS  
+
+👉 **Read this first:** `/brain/SESSION_2026-04-01_SUMMARY.md` (2-min overview)
+
+Then use templates below if you have new issues.
+
+---
+
 ## 🚀 WHEN YOU START NEW CHAT
 
 ### **Option A: Simple Issue (Recommended)**

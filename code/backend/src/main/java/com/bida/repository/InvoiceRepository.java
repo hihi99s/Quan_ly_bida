@@ -29,4 +29,6 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     long countByDateRange(@Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     List<Invoice> findAllByOrderByCreatedAtDesc();
+
+    boolean existsByDiscountCodeId(Long discountCodeId);
 }

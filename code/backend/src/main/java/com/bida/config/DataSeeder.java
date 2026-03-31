@@ -29,6 +29,7 @@ public class DataSeeder implements CommandLineRunner {
     private final HolidayCalendarRepository holidayCalendarRepository;
     private final CustomerRepository customerRepository;
     private final ShiftRepository shiftRepository;
+    private final DiscountCodeRepository discountCodeRepository;
 
     @Override
     @Transactional
@@ -41,15 +42,16 @@ public class DataSeeder implements CommandLineRunner {
         int seededHolidays = seedHolidays();
         int seededCustomers = seedCustomers();
         int seededShifts = seedShifts();
+        int seededDiscountCodes = seedDiscountCodes();
 
         int total = seededTables + seededRules + seededUsers + seededSettings
-                + seededProducts + seededHolidays + seededCustomers + seededShifts;
+                + seededProducts + seededHolidays + seededCustomers + seededShifts + seededDiscountCodes;
 
         if (total > 0) {
             log.info(
-                    "Seeded: {} tables, {} rules, {} users, {} settings, {} products, {} holidays, {} customers, {} shifts",
+                    "Seeded: {} tables, {} rules, {} users, {} settings, {} products, {} holidays, {} customers, {} shifts, {} discount codes",
                     seededTables, seededRules, seededUsers, seededSettings,
-                    seededProducts, seededHolidays, seededCustomers, seededShifts);
+                    seededProducts, seededHolidays, seededCustomers, seededShifts, seededDiscountCodes);
         } else {
             log.info("Database already seeded — skipping data initialization.");
         }
@@ -125,6 +127,21 @@ public class DataSeeder implements CommandLineRunner {
         rules.add(buildRule(TableType.VIP, DayType.HOLIDAY, t08, t12, 90_000));
         rules.add(buildRule(TableType.VIP, DayType.HOLIDAY, t12, t17, 100_000));
         rules.add(buildRule(TableType.VIP, DayType.HOLIDAY, t17, t23, 120_000));
+
+        // POOL - Night shift (23:00 → 08:00 next day, same as 17-23 rate)
+        rules.add(buildRule(TableType.POOL, DayType.WEEKDAY, t23, t08, 70_000));
+        rules.add(buildRule(TableType.POOL, DayType.WEEKEND, t23, t08, 80_000));
+        rules.add(buildRule(TableType.POOL, DayType.HOLIDAY, t23, t08, 90_000));
+
+        // CAROM - Night shift (same as 17-23 rate)
+        rules.add(buildRule(TableType.CAROM, DayType.WEEKDAY, t23, t08, 80_000));
+        rules.add(buildRule(TableType.CAROM, DayType.WEEKEND, t23, t08, 90_000));
+        rules.add(buildRule(TableType.CAROM, DayType.HOLIDAY, t23, t08, 100_000));
+
+        // VIP - Night shift (same as 17-23 rate)
+        rules.add(buildRule(TableType.VIP, DayType.WEEKDAY, t23, t08, 100_000));
+        rules.add(buildRule(TableType.VIP, DayType.WEEKEND, t23, t08, 110_000));
+        rules.add(buildRule(TableType.VIP, DayType.HOLIDAY, t23, t08, 120_000));
 
         priceRuleRepository.saveAll(rules);
         return rules.size();
@@ -270,5 +287,34 @@ public class DataSeeder implements CommandLineRunner {
                 Shift.builder().name("Ca toi").startTime(LocalTime.of(20, 0)).endTime(LocalTime.of(23, 0)).build());
         shiftRepository.saveAll(shifts);
         return shifts.size();
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. DISCOUNT CODES (Phase 2: sample discount codes)
+    // -------------------------------------------------------------------------
+    private int seedDiscountCodes() {
+        if (discountCodeRepository.count() > 0)
+            return 0;
+
+        LocalDate nextMonth = LocalDate.now().plusMonths(1);
+        List<DiscountCode> codes = List.of(
+                DiscountCode.builder()
+                        .code("SUMMER50")
+                        .discountPercent(new BigDecimal("10"))
+                        .maxUsageCount(50)
+                        .usageCount(0)
+                        .active(true)
+                        .expiryDate(nextMonth)
+                        .build(),
+                DiscountCode.builder()
+                        .code("NEW2024")
+                        .discountPercent(new BigDecimal("15"))
+                        .maxUsageCount(100)
+                        .usageCount(0)
+                        .active(true)
+                        .expiryDate(nextMonth.plusMonths(1))
+                        .build());
+        discountCodeRepository.saveAll(codes);
+        return codes.size();
     }
 }

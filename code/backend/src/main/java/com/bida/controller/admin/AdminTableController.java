@@ -49,6 +49,28 @@ public class AdminTableController {
         return "redirect:/admin/tables";
     }
 
+    @PostMapping("/{id}/disable")
+    public String disableTable(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            tableService.disableTable(id);
+            ra.addFlashAttribute("success", "Đã ngừng hoạt động bàn");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/admin/tables";
+    }
+
+    @PostMapping("/{id}/enable")
+    public String enableTable(@PathVariable Long id, RedirectAttributes ra) {
+        try {
+            tableService.enableTable(id);
+            ra.addFlashAttribute("success", "Đã kích hoạt lại bàn");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Lỗi: " + e.getMessage());
+        }
+        return "redirect:/admin/tables";
+    }
+
     @PostMapping("/{id}/delete")
     public String deleteTable(@PathVariable Long id, RedirectAttributes ra) {
         try {

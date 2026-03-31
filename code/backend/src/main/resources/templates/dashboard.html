@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body { background-color: #0f1923; color: #e0e0e0; min-height: 100vh; }
+        body { background-color: #0f1923; color: #e0e0e0; min-height: 100vh; --bs-secondary-color: rgba(224, 224, 224, 0.65); }
         .navbar { background: linear-gradient(135deg, #1a1a2e, #16213e) !important; }
 
         .table-grid {
@@ -186,6 +186,9 @@
                 <a class="nav-link" th:href="@{/admin/staff}" sec:authorize="hasRole('ADMIN')">
                     <i class="bi bi-person-badge"></i> Nhan vien
                 </a>
+                <a class="nav-link" th:href="@{/admin/discount-codes}" sec:authorize="hasRole('ADMIN')">
+                    <i class="bi bi-ticket"></i> Ma giam gia
+                </a>
                 <a class="nav-link" th:href="@{/admin/reports}" sec:authorize="hasRole('ADMIN')">
                     <i class="bi bi-bar-chart-line"></i> Bao cao
                 </a>
@@ -352,6 +355,26 @@
                             <div class="text-muted">Thoi gian: <span x-text="formatTime(selectedTable.playingMinutes)"></span></div>
                         </div>
 
+                        <!-- Manual Price Override -->
+                        <div class="mb-3 p-3 border border-warning rounded-2" style="background: rgba(255,193,7,0.05)">
+                            <label class="form-label small fw-semibold mb-2">
+                                <i class="bi bi-pencil-square me-1"></i>Gia ban (tuy chon - de trong la dung gia tu dong)
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" class="form-control bg-dark text-light border-secondary"
+                                       x-model="manualTableCharge"
+                                       placeholder="Nhap gia ban (VND)"
+                                       min="0">
+                                <span class="input-group-text bg-dark text-light border-secondary">VND</span>
+                                <button class="btn btn-outline-warning btn-sm" type="button" @click="manualTableCharge = ''">
+                                    <i class="bi bi-x"></i> Xoa
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-1">
+                                Tien ban tu dong: <span x-text="formatMoney(selectedTable.currentAmount)"></span> VND
+                            </small>
+                        </div>
+
                         <!-- Action buttons for PLAYING/PAUSED -->
                         <div class="d-flex gap-2 justify-content-center mb-3">
                             <template x-if="selectedTable.status === 'PLAYING'">
@@ -367,6 +390,37 @@
                             <button class="btn btn-info btn-sm" @click="showOrderPanel()">
                                 <i class="bi bi-cup-straw"></i> Goi mon (<span x-text="selectedTable.orderCount || 0"></span>)
                             </button>
+                        </div>
+
+                        <!-- Discount Code Input (Phase 2) -->
+                        <div class="mb-3 p-3 border border-info rounded-2" style="background: rgba(13,110,253,0.05)">
+                            <label class="form-label small fw-semibold mb-2">
+                                <i class="bi bi-ticket me-1"></i>Mã giảm giá (tùy chọn)
+                            </label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control bg-dark text-light border-secondary"
+                                       x-model="discountCode"
+                                       placeholder="Nhập mã giảm giá"
+                                       @keyup.enter="validateDiscountCode()">
+                                <button class="btn btn-outline-info btn-sm" type="button" @click="clearDiscountCode()">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            <!-- Discount preview (if validation succeeds) -->
+                            <template x-if="validatedCodeDiscount !== null">
+                                <div class="mt-2 p-2 bg-dark border border-success rounded small text-light">
+                                    <div>Membership: <span x-text="formatMoney(calculatedMembershipDiscount)"></span> VND</div>
+                                    <div>Code: <span x-text="formatMoney(validatedCodeDiscount)"></span> VND</div>
+                                    <div class="fw-bold">Tổng giảm: <span x-text="formatMoney(calculatedMembershipDiscount + validatedCodeDiscount)"></span> VND</div>
+                                    <div class="fw-bold text-warning">Final: <span x-text="formatMoney(calculatedFinalTotal)"></span> VND</div>
+                                </div>
+                            </template>
+                            <!-- Error (if validation fails) -->
+                            <template x-if="discountError">
+                                <small class="text-danger d-block mt-1">
+                                    <i class="bi bi-exclamation-circle"></i> <span x-text="discountError"></span>
+                                </small>
+                            </template>
                         </div>
                     </div>
                 </template>
@@ -474,6 +528,7 @@ function dashboardApp() {
         lastUpdate: '--:--',
         stompClient: null,
         pollInterval: null,
+        manualTableCharge: '',
 
         // Phase 2: Customer & Order
         customers: /*[[${customers != null ? customers : '[]'}]]*/ [],
@@ -483,6 +538,13 @@ function dashboardApp() {
         orderItems: [],
         orderProductId: '',
         orderQuantity: 1,
+
+        // Phase 2: Discount code
+        discountCode: '',
+        validatedCodeDiscount: null,
+        discountError: '',
+        calculatedMembershipDiscount: 0,
+        calculatedFinalTotal: 0,
 
         init() {
             this.fetchTables();
@@ -546,6 +608,7 @@ function dashboardApp() {
             this.showOrders = false;
             this.orderItems = [];
             this.selectedCustomerId = '';
+            this.manualTableCharge = '';
 
             if (table.status === 'AVAILABLE') {
                 this.modalTitle = 'Bat dau phien choi';
@@ -581,7 +644,18 @@ function dashboardApp() {
         async confirmEnd() {
             if (!this.selectedTable) return;
             try {
-                const res = await fetch(`/api/tables/${this.selectedTable.id}/end`, { method: 'POST' });
+                let url = `/api/tables/${this.selectedTable.id}/end`;
+                const params = [];
+                if (this.manualTableCharge) {
+                    params.push(`manualTableCharge=${this.manualTableCharge}`);
+                }
+                if (this.discountCode) {
+                    params.push(`discountCode=${encodeURIComponent(this.discountCode)}`);
+                }
+                if (params.length > 0) {
+                    url += '?' + params.join('&');
+                }
+                const res = await fetch(url, { method: 'POST' });
                 const data = await res.json();
                 if (data.success) {
                     let msg = data.message;
@@ -597,6 +671,10 @@ function dashboardApp() {
                 this.showToast('Loi ket noi server', 'danger');
             }
             bootstrap.Modal.getInstance(document.getElementById('actionModal'))?.hide();
+            this.manualTableCharge = '';
+            this.discountCode = '';
+            this.validatedCodeDiscount = null;
+            this.discountError = '';
         },
 
         async pauseTable() {
@@ -675,6 +753,34 @@ function dashboardApp() {
                     this.showToast(data.message, 'danger');
                 }
             } catch (e) { this.showToast('Loi xoa mon', 'danger'); }
+        },
+
+        // Phase 2: Discount code validation and calculation
+        clearDiscountCode() {
+            this.discountCode = '';
+            this.validatedCodeDiscount = null;
+            this.discountError = '';
+        },
+
+        validateDiscountCode() {
+            if (!this.discountCode || this.discountCode.trim() === '') {
+                this.discountError = '';
+                this.validatedCodeDiscount = null;
+                return;
+            }
+
+            // Simple client-side validation on submit - actual validation happens in confirmEnd()
+            // Just clear errors and calculate preview
+            this.discountError = '';
+
+            // Calculate membership discount
+            const subtotal = this.selectedTable.currentAmount;
+            this.calculatedMembershipDiscount = subtotal * 0.05; // Placeholder - real value from membership tier
+
+            // For now, just show that code is ready to submit
+            // Actual validation happens on server
+            this.validatedCodeDiscount = 0; // Will be calculated on server
+            this.calculatedFinalTotal = subtotal - this.calculatedMembershipDiscount - this.validatedCodeDiscount;
         },
 
         formatTime(minutes) {

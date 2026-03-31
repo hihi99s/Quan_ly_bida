@@ -63,4 +63,6 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
                                            @Param("to") LocalDateTime to);
 
     List<Session> findByCustomerIdOrderByStartTimeDesc(Long customerId);
+
+    long countByTable(BilliardTable table);
 }

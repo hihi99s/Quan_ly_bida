@@ -30,6 +30,9 @@ public class Invoice {
     @Builder.Default
     private BigDecimal tableCharge = BigDecimal.ZERO;
 
+    @Column(precision = 12, scale = 0)
+    private BigDecimal manualTableCharge;
+
     @Column(precision = 12, scale = 0, nullable = false)
     @Builder.Default
     private BigDecimal serviceCharge = BigDecimal.ZERO;
@@ -37,6 +40,13 @@ public class Invoice {
     @Column(precision = 12, scale = 0, nullable = false)
     @Builder.Default
     private BigDecimal discount = BigDecimal.ZERO;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "discount_code_id")
+    private DiscountCode discountCode;
+
+    @Column(precision = 12, scale = 0)
+    private BigDecimal codeDiscountAmount;
 
     @Column(precision = 12, scale = 0, nullable = false)
     @Builder.Default

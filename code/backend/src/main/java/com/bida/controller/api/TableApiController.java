@@ -29,11 +29,15 @@ public class TableApiController {
     private final InvoiceService invoiceService;
 
     /**
-     * GET /api/tables - Danh sach tat ca ban + trang thai realtime.
+     * GET /api/tables - Danh sach tat ca ban + trang thai realtime (exclude DISABLED).
      */
     @GetMapping
     public ResponseEntity<List<TableStatusDTO>> getAllTables() {
         List<BilliardTable> tables = tableService.getAllTables();
+        // Filter out DISABLED tables from dashboard
+        tables = tables.stream()
+                .filter(t -> !t.getStatus().equals(com.bida.entity.enums.TableStatus.DISABLED))
+                .toList();
         List<TableStatusDTO> statuses = sessionService.getAllTableStatuses(tables);
         return ResponseEntity.ok(statuses);
     }
@@ -63,11 +67,16 @@ public class TableApiController {
 
     /**
      * POST /api/tables/{id}/end - Ket thuc phien choi.
+     * @param manualTableCharge - (tuy chon) gia ban su dung thu cong
+     * @param discountCode - (tuy chon) ma giam gia
      */
     @PostMapping("/{id}/end")
-    public ResponseEntity<?> endSession(@PathVariable Long id, Principal principal) {
+    public ResponseEntity<?> endSession(@PathVariable Long id,
+                                        @RequestParam(required = false) BigDecimal manualTableCharge,
+                                        @RequestParam(required = false) String discountCode,
+                                        Principal principal) {
         try {
-            Session session = sessionService.endSession(id, principal.getName());
+            Session session = sessionService.endSession(id, principal.getName(), manualTableCharge, discountCode);
             broadcaster.broadcastAllTables();
 
             // Lay invoice
@@ -83,9 +92,15 @@ public class TableApiController {
                 response.put("tableCharge", inv.getTableCharge());
                 response.put("serviceCharge", inv.getServiceCharge());
                 response.put("discount", inv.getDiscount());
+                response.put("codeDiscountAmount", inv.getCodeDiscountAmount());
                 response.put("invoiceTotal", inv.getTotalAmount());
             }
             return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,

@@ -4,6 +4,60 @@
 
 ---
 
+## 🎉 SESSION UPDATE: 2026-04-01
+
+### ✅ Implemented Today
+| Feature/Fix | Files | Status |
+|---|---|---|
+| **Discount Code System (Phase 2)** | DiscountCode, DiscountCodeService, AdminDiscountCodeController, admin/discount-codes.html | ✅ Complete |
+| Dashboard text visibility fix | dashboard.html (CSS) | ✅ Complete |
+| Admin form CSRF token fix | admin/tables.html | ✅ Complete |
+| Transaction rollback error fix | SessionService.java (early validation) | ✅ Complete |
+| Navbar "Mã giảm giá" links | 10 template files | ✅ Complete |
+| Delete discount code guard | InvoiceRepository, DiscountCodeService | ✅ Complete |
+
+### 💰 Discount Code Features
+```
+WHAT:  Percentage-based discount codes with usage tracking
+WHERE: /admin/discount-codes (CRUD)
+       Dashboard end session modal (apply code)
+       /admin/invoices (show applied codes)
+
+RULES: - Code validation happens EARLY in SessionService.endSession()
+       - Prevents transaction rollback leak
+       - Can't delete code if used in any invoice
+       - Stacks with membership discount (additive)
+       - Usage count increments atomically with invoice creation
+
+MESSAGES (Vietnamese):
+  "Mã giảm giá không tồn tại: <code>"
+  "Mã giảm giá không còn hoạt động"     ← inactive code
+  "Mã giảm giá đã hết hạn"              ← expired
+  "Mã giảm giá đã hết lượt sử dụng"     ← usage limit exceeded
+  "Không thể xóa mã giảm giá đã được sử dụng trong hóa đơn..."
+```
+
+### 🐛 Fixes Applied
+```
+1. CSS Dark Background Bug
+   Problem: text-muted was invisible on #0f1923 background
+   Fix:     Override --bs-secondary-color in body CSS
+   
+2. Admin Form 403 Forbidden
+   Problem: Edit form missing CSRF token (no th:action)
+   Fix:     Added hidden CSRF input field
+   
+3. Transaction Rollback Leak
+   Problem: Discount code validation inside @Transactional marked TX as rollback-only
+   Fix:     Validate code BEFORE any DB writes in SessionService.endSession()
+   
+4. Used Code Deletion
+   Problem: Deleting used code showed SQL FK error to user
+   Fix:     Check invoiceRepository.existsByDiscountCodeId() before delete
+```
+
+---
+
 ## 🔍 SEARCH BY SYMPTOM
 
 ### 💰 "Lỗi Tính Tiền"
@@ -85,6 +139,23 @@ Kiểm tra:
   5. WebSocket connection active không? (check DevTools)
 ```
 
+### 🎟️ "Mã giảm giá bị reject"
+```
+Triệu chứng: Nhập mã, submit nhưng báo lỗi hoặc bị xóa không được
+Files:
+  → DiscountCodeService.findAndValidate()
+  → SessionService.endSession() (early validation)
+  → InvoiceRepository.existsByDiscountCodeId()
+  → admin/discount-codes.html
+
+Kiểm tra:
+  1. Mã có tồn tại (active=true) không?
+  2. Mã có hết hạn không? (expiryDate < today)
+  3. Mã có đã hết lượt sử dụng không? (usageCount >= maxUsageCount)
+  4. Nếu xóa: mã có được dùng trong invoice không?
+  5. Message có hiện tiếng Việt không? (không lộ SQL/FK error)
+```
+
 ---
 
 ## 🗂️ SEARCH BY FEATURE
@@ -122,15 +193,27 @@ Customer API:          CustomerApiController
 Spending tracking:     Customer.addSpending()
 ```
 
+### 🎟️ Discount Codes (Phase 2)
+```
+CRUD:                  DiscountCodeService, AdminDiscountCodeController
+Validation:            DiscountCodeService.findAndValidate()
+Usage tracking:        DiscountCodeService.incrementUsage()
+Apply in invoice:      InvoiceService.createInvoice()
+Check usage:           InvoiceRepository.existsByDiscountCodeId()
+Admin UI:              /admin/discount-codes
+Apply in dashboard:    dashboard.html (end session modal)
+```
+
 ### 🏪 Admin Pages
 ```
-Products:      /admin/products → AdminProductController
-Prices:        /admin/prices → AdminPriceController
-Invoices:      /admin/invoices → AdminInvoiceController
-Customers:     /admin/customers → AdminCustomerController
-Tables:        /admin/tables → AdminTableController
-Staff:         /admin/staff → AdminStaffController
-Holidays:      /admin/holidays → AdminHolidayController
+Products:         /admin/products → AdminProductController
+Prices:           /admin/prices → AdminPriceController
+Invoices:         /admin/invoices → AdminInvoiceController
+Customers:        /admin/customers → AdminCustomerController
+Discount Codes:   /admin/discount-codes → AdminDiscountCodeController (Phase 2)
+Tables:           /admin/tables → AdminTableController
+Staff:            /admin/staff → AdminStaffController
+Holidays:         /admin/holidays → AdminHolidayController
 ```
 
 ### 🌐 APIs
