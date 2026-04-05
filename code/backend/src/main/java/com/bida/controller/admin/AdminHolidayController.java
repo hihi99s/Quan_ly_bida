@@ -37,6 +37,11 @@ public class AdminHolidayController {
         return "redirect:/admin/holidays";
     }
 
+    @GetMapping("/{id}/edit")
+    public String editHolidayRedirect() {
+        return "redirect:/admin/holidays";
+    }
+
     @PostMapping("/{id}/edit")
     public String updateHoliday(@PathVariable Long id,
                                  @RequestParam String name,
@@ -49,6 +54,11 @@ public class AdminHolidayController {
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
+        return "redirect:/admin/holidays";
+    }
+
+    @GetMapping("/{id}/delete")
+    public String deleteHolidayRedirect() {
         return "redirect:/admin/holidays";
     }
 

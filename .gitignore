@@ -21,6 +21,9 @@ bin/
 
 # ----- Claude / Agent Settings -------------------------------
 .claude/
+.codex-review/
+brain/
+BACKEND_EXPLORATION/
 
 # ----- OS generated ------------------------------------------
 .DS_Store
@@ -31,18 +34,18 @@ bin/
 ehthumbs.db
 Thumbs.db
 
-# ----- Logs --------------------------------------------------
+# ----- Logs ----------------------------------
 *.log
 logs/
 
-# ----- Node / Frontend ---------------------------------------
+# ----- Frontend (if applicable) -------------------------------
 node_modules/
+dist/
+build/
 npm-debug.log*
 
 # ----- Database / Local --------------------------------------
 *.db
 *.sqlite
+/code/backend/src/main/resources/application-local.properties
 
-# ----- Claude / Agent Settings -------------------------------
-
-.codex-review/

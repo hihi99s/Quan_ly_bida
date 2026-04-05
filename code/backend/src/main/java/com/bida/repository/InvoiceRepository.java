@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -31,4 +32,11 @@ public interface InvoiceRepository extends JpaRepository<Invoice, Long> {
     List<Invoice> findAllByOrderByCreatedAtDesc();
 
     boolean existsByDiscountCodeId(Long discountCodeId);
+
+    /** Tổng doanh thu theo nhân viên trong khoảng thời gian (dùng cho chốt ca) */
+    @Query("SELECT COALESCE(SUM(i.totalAmount), 0) FROM Invoice i " +
+           "WHERE i.staff.id = :staffId AND i.createdAt >= :from AND i.createdAt < :to")
+    BigDecimal sumTotalByStaffAndDateRange(@Param("staffId") Long staffId,
+                                           @Param("from") LocalDateTime from,
+                                           @Param("to") LocalDateTime to);
 }

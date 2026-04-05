@@ -1,6 +1,6 @@
 package com.bida.service;
 
-import com.bida.repository.InvoiceRepository;
+import com.bida.repository.OrderItemRepository;
 import com.bida.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,23 @@ import java.util.*;
 public class ReportService {
 
     private final SessionRepository sessionRepository;
-    private final InvoiceRepository invoiceRepository;
+    private final OrderItemRepository orderItemRepository;
+
+    /**
+     * Top san pham ban chay.
+     */
+    public List<Map<String, Object>> getTopSellingProducts(LocalDateTime from, LocalDateTime to) {
+        List<Object[]> rows = orderItemRepository.findTopSellingProducts(from, to);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (Object[] row : rows) {
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("name", row[0]);
+            item.put("quantity", row[1]);
+            item.put("revenue", row[2]);
+            result.add(item);
+        }
+        return result;
+    }
 
     /**
      * Doanh thu theo khoang thoi gian.

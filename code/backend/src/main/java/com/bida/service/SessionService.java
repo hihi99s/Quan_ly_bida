@@ -330,6 +330,60 @@ public class SessionService {
     }
 
     /**
+     * Chuyen phien choi dang active sang mot ban khac.
+     *
+     * Dieu kien:
+     *   - Ban nguon (fromTable) phai dang PLAYING hoac PAUSED
+     *   - Ban dich (toTable)   phai dang AVAILABLE
+     *
+     * Giu nguyen toan bo: startTime, customer, orderItems, pausedMinutes.
+     * Trang thai ban dich ke thua trang thai ban nguon (PLAYING / PAUSED).
+     */
+    public Session transferSession(Long fromTableId, Long toTableId, String staffUsername) {
+        if (fromTableId.equals(toTableId)) {
+            throw new RuntimeException("Ban dich phai khac ban nguon");
+        }
+
+        BilliardTable fromTable = validateAndGetTable(fromTableId);
+        BilliardTable toTable   = validateAndGetTable(toTableId);
+
+        if (fromTable.getStatus() != TableStatus.PLAYING && fromTable.getStatus() != TableStatus.PAUSED) {
+            throw new RuntimeException("Ban " + fromTable.getName() + " khong co phien choi dang hoat dong");
+        }
+
+        if (toTable.getStatus() != TableStatus.AVAILABLE) {
+            throw new RuntimeException("Ban " + toTable.getName() + " khong trong. Trang thai hien tai: "
+                    + toTable.getStatus().name());
+        }
+
+        Session session = sessionRepository.findByTableAndStatus(fromTable, SessionStatus.ACTIVE)
+                .orElseThrow(() -> new RuntimeException(
+                        "Khong co phien choi active tren ban " + fromTable.getName()));
+
+        TableStatus currentStatus = fromTable.getStatus(); // giu PLAYING hoac PAUSED
+
+        // Ghi snapshot ban goc TRUOC khi chuyen (de BillingCalculator tach tien 2 giai doan)
+        session.setOriginalTableType(fromTable.getTableType());
+        session.setTransferredAt(LocalDateTime.now());
+
+        // Chuyen session sang ban moi
+        session.setTable(toTable);
+        sessionRepository.save(session);
+
+        // Tra ban cu ve trong, ban moi nhan trang thai cu
+        fromTable.setStatus(TableStatus.AVAILABLE);
+        tableRepository.save(fromTable);
+
+        toTable.setStatus(currentStatus);
+        tableRepository.save(toTable);
+
+        log.info("Chuyen ban – Phien #{} tu '{}' sang '{}' | Staff: {} | Trang thai: {}",
+                session.getId(), fromTable.getName(), toTable.getName(), staffUsername, currentStatus);
+
+        return session;
+    }
+
+    /**
      * Phase 2: Bat/tat che do bao tri ban.
      */
     public void setMaintenance(Long tableId, boolean enable) {

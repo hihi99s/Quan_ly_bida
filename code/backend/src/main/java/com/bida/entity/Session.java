@@ -1,6 +1,7 @@
 package com.bida.entity;
 
 import com.bida.entity.enums.SessionStatus;
+import com.bida.entity.enums.TableType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -64,6 +65,16 @@ public class Session {
     @OneToMany(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
+
+    // ---- Phase 3: Transfer table support ----
+    // Neu phien duoc chuyen ban, ghi lai thoi diem va loai ban goc
+    // de BillingCalculator tinh tien chinh xac theo tung giai doan.
+    @Column
+    private LocalDateTime transferredAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column
+    private TableType originalTableType;
 
     @PrePersist
     public void prePersist() {

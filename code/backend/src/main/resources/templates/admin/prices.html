@@ -302,9 +302,7 @@
                 <a class="nav-link"
                    th:classappend="${tt == selectedType} ? ' active' : ''"
                    th:href="@{/admin/prices(tableType=${tt.name()})}"
-                   th:text="${tt == T(com.bida.entity.enums.TableType).POOL}   ? 'Bàn Pool'   :
-                             (tt == T(com.bida.entity.enums.TableType).CAROM  ? 'Bàn Carom'  :
-                              'Bàn VIP')">
+                   th:text="${tt.name() == 'POOL' ? 'Bàn Pool' : (tt.name() == 'CAROM' ? 'Bàn Carom' : 'Bàn VIP')}">
                 </a>
             </li>
         </ul>
@@ -319,26 +317,22 @@
         <!-- Lặp qua 3 loại ngày -->
         <div class="col-12" th:each="dt : ${dayTypes}">
             <div class="day-section card"
-                 th:classappend="${dt.name() == 'WEEKDAY'} ? ' weekday' :
-                                 (${dt.name() == 'WEEKEND'} ? ' weekend' : ' holiday')">
+                 th:classappend="${dt.name() == 'WEEKDAY' ? ' weekday' : (dt.name() == 'WEEKEND' ? ' weekend' : ' holiday')}">
 
                 <!-- Card Header -->
                 <div class="card-header">
                     <i class="bi"
-                       th:classappend="${dt.name() == 'WEEKDAY'} ? ' bi-calendar-week' :
-                                       (${dt.name() == 'WEEKEND'} ? ' bi-calendar2-heart' : ' bi-balloon-heart-fill')"></i>
-                    <span th:text="${dt.name() == 'WEEKDAY'} ? 'Ngày Thường' :
-                                   (dt.name() == 'WEEKEND'   ? 'Cuối Tuần'   : 'Ngày Lễ')"></span>
+                       th:classappend="${dt.name() == 'WEEKDAY' ? ' bi-calendar-week' : (dt.name() == 'WEEKEND' ? ' bi-calendar2-heart' : ' bi-balloon-heart-fill')}"></i>
+                    <span th:text="${dt.name() == 'WEEKDAY' ? 'Ngày Thường' : (dt.name() == 'WEEKEND' ? 'Cuối Tuần' : 'Ngày Lễ')}"></span>
                     <span class="badge rounded-pill ms-auto px-3"
-                          th:classappend="${dt.name() == 'WEEKDAY'} ? ' bg-primary' :
-                                          (${dt.name() == 'WEEKEND'} ? ' bg-warning text-dark' : ' bg-danger')"
-                          th:text="${rulesMap[dt] != null} ? ${rulesMap[dt].size()} + ' khung giờ' : '0 khung giờ'">
+                          th:classappend="${dt.name() == 'WEEKDAY' ? ' bg-primary' : (dt.name() == 'WEEKEND' ? ' bg-warning text-dark' : ' bg-danger')}"
+                          th:text="${rulesMap.get(dt) != null ? rulesMap.get(dt).size() + ' khung giờ' : '0 khung giờ'}">
                     </span>
                 </div>
 
                 <!-- Price Table -->
                 <div class="table-responsive"
-                     th:if="${rulesMap[dt] != null and !#lists.isEmpty(rulesMap[dt])}">
+                     th:if="${rulesMap.get(dt) != null and !#lists.isEmpty(rulesMap.get(dt))}">
                     <table class="table price-table mb-0">
                         <thead>
                         <tr>
@@ -348,7 +342,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="rule : ${rulesMap[dt]}">
+                        <tr th:each="rule : ${rulesMap.get(dt)}">
                             <td>
                                 <span class="time-badge">
                                     <i class="bi bi-clock me-1"></i>
@@ -393,7 +387,7 @@
 
                 <!-- Empty state -->
                 <div class="empty-state"
-                     th:if="${rulesMap[dt] == null or #lists.isEmpty(rulesMap[dt])}">
+                     th:if="${rulesMap.get(dt) == null or #lists.isEmpty(rulesMap.get(dt))}">
                     <i class="bi bi-inbox"></i>
                     <span>Chưa có khung giờ nào. Thêm mới bên dưới.</span>
                 </div>
@@ -407,8 +401,7 @@
                             th:data-bs-target="${'#addForm-' + dt.name()}">
                         <i class="bi bi-plus-circle me-1"></i>
                         Thêm khung giờ mới
-                        <span th:text="${dt.name() == 'WEEKDAY'} ? '(Ngày Thường)' :
-                                       (dt.name() == 'WEEKEND'   ? '(Cuối Tuần)'   : '(Ngày Lễ)')"></span>
+                        <span th:text="${dt.name() == 'WEEKDAY' ? '(Ngày Thường)' : (dt.name() == 'WEEKEND' ? '(Cuối Tuần)' : '(Ngày Lễ)')}"></span>
                     </button>
                 </div>
 
@@ -467,6 +460,7 @@
 
             <form id="editForm" method="post" action="#">
                 <input type="hidden" name="tableType" id="editTableType"/>
+                <input type="hidden" name="_csrf" th:value="${_csrf.token}"/>
 
                 <div class="modal-body px-4 pb-2">
                     <div class="row g-3">
@@ -475,14 +469,14 @@
                                 <i class="bi bi-clock-history me-1"></i>Giờ Bắt Đầu
                             </label>
                             <input type="time" id="editStartTime" name="startTime"
-                                   class="form-control" required/>
+                                   class="form-control" readonly required/>
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">
                                 <i class="bi bi-clock-fill me-1"></i>Giờ Kết Thúc
                             </label>
                             <input type="time" id="editEndTime" name="endTime"
-                                   class="form-control" required/>
+                                   class="form-control" readonly required/>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold text-secondary" style="font-size:.82rem;">

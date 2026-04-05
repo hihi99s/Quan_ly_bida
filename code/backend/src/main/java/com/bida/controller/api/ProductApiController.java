@@ -6,9 +6,11 @@ import com.bida.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST API Controller cho Product - hỗ trợ dropdown order món.
@@ -101,6 +103,62 @@ public class ProductApiController {
         } catch (Exception e) {
             log.error("Lỗi GET /api/products/low-stock: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * POST /api/products - Thêm sản phẩm mới.
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")     // ← Chỉ ADMIN thêm sản phẩm
+    public ResponseEntity<?> createProduct(@RequestBody Product product) {
+        try {
+            Product created = productService.createProduct(
+                    product.getName(),
+                    product.getCategory(),
+                    product.getPrice(),
+                    product.getStockQuantity(),
+                    product.getImageUrl()
+            );
+            return ResponseEntity.ok(Map.of("success", true, "message", "Thêm sản phẩm thành công", "product", created));
+        } catch (Exception e) {
+            log.error("Lỗi thêm sản phẩm: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * PUT /api/products/{id} - Cập nhật sản phẩm.
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")     // ← Chỉ ADMIN sửa sản phẩm
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        try {
+            Product updated = productService.updateProduct(
+                    id,
+                    product.getName(),
+                    product.getCategory(),
+                    product.getPrice(),
+                    product.getStockQuantity(),
+                    product.getImageUrl()
+            );
+            return ResponseEntity.ok(Map.of("success", true, "message", "Cập nhật thành công", "product", updated));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * DELETE /api/products/{id} - Xóa sản phẩm.
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")     // ← Chỉ ADMIN xóa sản phẩm
+    public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
+        try {
+            productService.deleteProduct(id);
+            return ResponseEntity.ok(Map.of("success", true, "message", "Xóa sản phẩm thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }
 }

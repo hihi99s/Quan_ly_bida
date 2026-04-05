@@ -1,5 +1,6 @@
 package com.bida.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class Invoice {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false, unique = true)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "invoice", "segments", "orderItems"})
     private Session session;
 
     @Column(unique = true, nullable = false)
@@ -57,6 +59,7 @@ public class Invoice {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "staff_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "password"})
     private User staff;
 
     @PrePersist

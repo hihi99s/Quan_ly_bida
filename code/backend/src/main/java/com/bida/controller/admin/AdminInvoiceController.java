@@ -9,6 +9,7 @@ import com.bida.repository.SessionSegmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,6 +95,7 @@ public class AdminInvoiceController {
     }
 
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     public String viewInvoice(@PathVariable Long id, Model model) {
         Invoice invoice = invoiceService.getById(id);
         model.addAttribute("invoice", invoice);

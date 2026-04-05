@@ -162,6 +162,32 @@ public class TableApiController {
         return ResponseEntity.ok(Map.of("currentAmount", amount));
     }
 
+    /**
+     * POST /api/tables/{id}/transfer?targetTableId={tid} - Chuyen ban.
+     *
+     * Ban nguon ({id})     : phai dang PLAYING hoac PAUSED.
+     * Ban dich (targetTableId): phai dang AVAILABLE.
+     * Session, customer, order items, pause info duoc giu nguyen.
+     */
+    @PostMapping("/{id}/transfer")
+    public ResponseEntity<?> transferSession(@PathVariable Long id,
+                                              @RequestParam Long targetTableId,
+                                              Principal principal) {
+        try {
+            sessionService.transferSession(id, targetTableId, principal.getName());
+            broadcaster.broadcastAllTables();
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Da chuyen phien choi sang ban moi thanh cong"
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
     // ---- Order (Goi mon) API ----
 
     /**

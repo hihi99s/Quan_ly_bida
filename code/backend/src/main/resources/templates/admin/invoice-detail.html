@@ -499,6 +499,8 @@
         <div class="summary-section">
             <div class="row justify-content-end">
                 <div class="col-sm-8 col-md-5 col-lg-4">
+
+                    <!-- Tien ban (tu dong) -->
                     <div class="summary-row">
                         <span class="summary-label">
                             <i class="bi bi-grid-3x3-gap me-1"></i>Tien ban:
@@ -507,6 +509,18 @@
                               th:text="${#numbers.formatDecimal(invoice.tableCharge, 0, 'COMMA', 0, 'POINT')} + ' d'">
                         </span>
                     </div>
+
+                    <!-- Gia ban thu cong (chi hien neu co) -->
+                    <div class="summary-row" th:if="${invoice.manualTableCharge != null}">
+                        <span class="summary-label">
+                            <i class="bi bi-pencil-square me-1"></i>Gia ban (thu cong):
+                        </span>
+                        <span class="summary-value text-warning"
+                              th:text="${#numbers.formatDecimal(invoice.manualTableCharge, 0, 'COMMA', 0, 'POINT')} + ' d'">
+                        </span>
+                    </div>
+
+                    <!-- Dich vu / F&B -->
                     <div class="summary-row">
                         <span class="summary-label">
                             <i class="bi bi-cup-straw me-1"></i>Dich vu:
@@ -515,18 +529,37 @@
                               th:text="${#numbers.formatDecimal(invoice.serviceCharge, 0, 'COMMA', 0, 'POINT')} + ' d'">
                         </span>
                     </div>
-                    <div class="summary-row">
+
+                    <!-- Giam gia hang thanh vien (chi hien neu > 0) -->
+                    <div class="summary-row" th:if="${invoice.discount != null and invoice.discount.compareTo(T(java.math.BigDecimal).ZERO) > 0}">
                         <span class="summary-label">
-                            <i class="bi bi-tag me-1"></i>Giam gia:
+                            <i class="bi bi-award me-1"></i>Giam gia (hang thanh vien):
                         </span>
                         <span class="summary-value text-success"
                               th:text="'-' + ${#numbers.formatDecimal(invoice.discount, 0, 'COMMA', 0, 'POINT')} + ' d'">
                         </span>
                     </div>
+
+                    <!-- Ma giam gia (chi hien neu co) -->
+                    <div class="summary-row" th:if="${invoice.discountCode != null}">
+                        <span class="summary-label">
+                            <i class="bi bi-ticket me-1"></i>Ma giam gia
+                            <span class="badge bg-info-subtle text-info-emphasis rounded-pill ms-1"
+                                  style="font-size:.72rem;"
+                                  th:text="${invoice.discountCode.code}">
+                            </span>:
+                        </span>
+                        <span class="summary-value text-success"
+                              th:text="'-' + ${#numbers.formatDecimal(invoice.codeDiscountAmount ?: 0, 0, 'COMMA', 0, 'POINT')} + ' d'">
+                        </span>
+                    </div>
+
+                    <!-- Tong cong -->
                     <div class="summary-row total">
                         <span>TONG CONG:</span>
                         <span th:text="${#numbers.formatDecimal(invoice.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' d'"></span>
                     </div>
+
                 </div>
             </div>
         </div>
