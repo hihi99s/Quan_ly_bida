@@ -1,5 +1,7 @@
 package com.bida.controller.api;
 
+import com.bida.entity.User;
+import com.bida.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +29,7 @@ import java.util.Map;
 public class AuthApiController {
 
     private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credentials,
@@ -48,8 +51,11 @@ public class AuthApiController {
                     .map(GrantedAuthority::getAuthority)
                     .findFirst().orElse("ROLE_STAFF");
 
+            User user = userRepository.findByUsername(username).orElse(null);
+
             return ResponseEntity.ok(Map.of(
                     "success", true,
+                    "id", user != null ? user.getId() : -1,
                     "username", username,
                     "role", role.replace("ROLE_", ""),
                     "message", "Đăng nhập thành công"
@@ -79,8 +85,10 @@ public class AuthApiController {
         String role = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst().orElse("ROLE_STAFF");
+        User user = userRepository.findByUsername(auth.getName()).orElse(null);
         return ResponseEntity.ok(Map.of(
                 "authenticated", true,
+                "id", user != null ? user.getId() : -1,
                 "username", auth.getName(),
                 "role", role.replace("ROLE_", "")
         ));

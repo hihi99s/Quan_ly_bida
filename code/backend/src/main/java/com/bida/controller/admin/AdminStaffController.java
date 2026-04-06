@@ -14,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -64,7 +65,7 @@ public class AdminStaffController {
                                @RequestParam String endTime,
                                RedirectAttributes redirectAttributes) {
         try {
-            scheduleService.createShift(name, LocalTime.parse(startTime), LocalTime.parse(endTime));
+            scheduleService.createShift(name, LocalTime.parse(startTime), LocalTime.parse(endTime), null);
             redirectAttributes.addFlashAttribute("success", "Them ca thanh cong");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -89,9 +90,10 @@ public class AdminStaffController {
     public String assignSchedule(@RequestParam Long userId,
                                   @RequestParam Long shiftId,
                                   @RequestParam String date,
+                                  Principal principal,
                                   RedirectAttributes redirectAttributes) {
         try {
-            scheduleService.assignSchedule(userId, shiftId, LocalDate.parse(date));
+            scheduleService.assignSchedule(userId, shiftId, LocalDate.parse(date), principal.getName());
             redirectAttributes.addFlashAttribute("success", "Xep lich thanh cong");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -100,9 +102,9 @@ public class AdminStaffController {
     }
 
     @PostMapping("/schedule/{id}/checkin")
-    public String checkIn(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String checkIn(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
         try {
-            scheduleService.checkIn(id);
+            scheduleService.checkIn(id, principal.getName());
             redirectAttributes.addFlashAttribute("success", "Check-in thanh cong");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -111,9 +113,9 @@ public class AdminStaffController {
     }
 
     @PostMapping("/schedule/{id}/checkout")
-    public String checkOut(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String checkOut(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
         try {
-            scheduleService.checkOut(id);
+            scheduleService.checkOut(id, principal.getName());
             redirectAttributes.addFlashAttribute("success", "Check-out thanh cong");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -122,9 +124,9 @@ public class AdminStaffController {
     }
 
     @PostMapping("/schedule/{id}/delete")
-    public String deleteSchedule(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteSchedule(@PathVariable Long id, Principal principal, RedirectAttributes redirectAttributes) {
         try {
-            scheduleService.deleteSchedule(id);
+            scheduleService.deleteSchedule(id, principal.getName());
             redirectAttributes.addFlashAttribute("success", "Da xoa lich");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());

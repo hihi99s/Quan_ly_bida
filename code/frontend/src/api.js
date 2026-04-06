@@ -44,6 +44,9 @@ export const tableApi = {
   getOrders: (tableId) => request(`/tables/${tableId}/orders`),
   addOrder: (tableId, productId, quantity) => request(`/tables/${tableId}/orders?productId=${productId}&quantity=${quantity}`, { method: 'POST' }),
   removeOrder: (orderItemId) => request(`/tables/orders/${orderItemId}`, { method: 'DELETE' }),
+  create: (data) => request('/tables', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => request(`/tables/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => request(`/tables/${id}`, { method: 'DELETE' }),
 };
 
 // ─── Products ───
@@ -119,6 +122,35 @@ export const reservationApi = {
   create: (data) => request('/reservations', { method: 'POST', body: JSON.stringify(data) }),
   cancel: (id) => request(`/reservations/${id}/cancel`, { method: 'POST' }),
   getPending: () => request('/reservations/pending'),
+};
+
+// ─── Staff & Shift Scheduling ───
+export const staffApi = {
+  // Shifts
+  getShifts: () => request('/staff/shifts'),
+  createShift: (data) => request('/staff/shifts', { method: 'POST', body: JSON.stringify(data) }),
+  updateShift: (id, data) => request(`/staff/shifts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteShift: (id) => request(`/staff/shifts/${id}`, { method: 'DELETE' }),
+  
+  // Schedules
+  getSchedules: (date, weekStart) => {
+    let url = '/staff/schedules?';
+    if (date) url += `date=${date}&`;
+    if (weekStart) url += `weekStart=${weekStart}&`;
+    return request(url);
+  },
+  getSchedulesByUser: (userId, from, to) => 
+    request(`/staff/schedules/user/${userId}?from=${from}&to=${to}`),
+  assign: (data) => request('/staff/schedules', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => request(`/staff/schedules/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => request(`/staff/schedules/${id}`, { method: 'DELETE' }),
+  bulkDelete: (from, to) => request(`/staff/schedules/bulk?from=${from}&to=${to}`, { method: 'DELETE' }),
+  checkIn: (id) => request(`/staff/schedules/${id}/checkin`, { method: 'POST' }),
+  checkOut: (id) => request(`/staff/schedules/${id}/checkout`, { method: 'POST' }),
+  getLate: () => request('/staff/schedules/late'),
+  
+  // Audit
+  getAuditLogs: () => request('/staff/audit-logs'),
 };
 
 export function formatMoney(amount) {

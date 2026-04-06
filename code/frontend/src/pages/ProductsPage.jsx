@@ -116,10 +116,19 @@ export default function ProductsPage() {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {filteredProducts.map(p => (
           <div key={p.id} className="glass-card overflow-hidden hover:scale-105 transition-transform duration-300 relative group flex flex-col">
-            <div className="h-32 bg-navy-900 flex items-center justify-center p-4 relative">
-              <span className="text-5xl opacity-80 group-hover:scale-110 transition-transform">
-                {p.category === 'DRINK' ? '🥤' : p.category === 'FOOD' ? '🍜' : p.category === 'CARD' ? '🎴' : '📦'}
-              </span>
+            <div className="h-32 bg-navy-900 flex items-center justify-center p-2 relative overflow-hidden">
+              {p.imageUrl ? (
+                <img 
+                  src={p.imageUrl} 
+                  alt={p.name} 
+                  className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" 
+                  onError={(e) => e.target.src = 'https://placehold.co/400x400?text=No+Image'}
+                />
+              ) : (
+                <span className="text-5xl opacity-80 group-hover:scale-110 transition-transform">
+                  {p.category === 'DRINK' ? '🥤' : p.category === 'FOOD' ? '🍜' : p.category === 'CARD' ? '🎴' : '📦'}
+                </span>
+              )}
               <div className={`absolute top-2 right-2 px-2 py-0.5 rounded-md text-xs font-bold ${
                 p.stockQuantity <= 5 ? 'bg-red-500 text-white animate-pulse' : 'bg-navy-800/80 text-emerald-400 border border-emerald-500/30'
               }`}>
@@ -181,6 +190,24 @@ export default function ProductsPage() {
               <div>
                 <label className="block text-sm text-slate-400 mb-1">Giá bán (VNĐ) *</label>
                 <input required type="number" min="0" value={formData.price} onChange={e => setFormData({...formData, price: parseFloat(e.target.value)})} className="w-full bg-navy-900 border border-white/10 rounded-lg p-2.5 text-white text-xl font-mono text-cyan-400" />
+              </div>
+              
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Đường dẫn ảnh (URL)</label>
+                <div className="flex gap-4 items-start">
+                    <input 
+                      type="text" 
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.imageUrl} 
+                      onChange={e => setFormData({...formData, imageUrl: e.target.value})} 
+                      className="flex-1 bg-navy-900 border border-white/10 rounded-lg p-2.5 text-white text-sm" 
+                    />
+                    {formData.imageUrl && (
+                        <div className="w-12 h-12 rounded bg-navy-900 border border-white/10 overflow-hidden flex-shrink-0">
+                            <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" onError={(e) => e.target.style.display = 'none'} />
+                        </div>
+                    )}
+                </div>
               </div>
               
               <div className="pt-4 flex gap-3">

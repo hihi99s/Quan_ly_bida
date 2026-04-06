@@ -1,5 +1,6 @@
 package com.bida.repository;
 
+import com.bida.entity.Shift;
 import com.bida.entity.StaffSchedule;
 import com.bida.entity.User;
 import com.bida.entity.enums.ScheduleStatus;
@@ -23,11 +24,13 @@ public interface StaffScheduleRepository extends JpaRepository<StaffSchedule, Lo
 
     List<StaffSchedule> findByUserAndDateBetween(User user, LocalDate from, LocalDate to);
 
-    Optional<StaffSchedule> findByUserAndDate(User user, LocalDate date);
+    List<StaffSchedule> findByUserAndDate(User user, LocalDate date);
 
     List<StaffSchedule> findByDateAndStatus(LocalDate date, ScheduleStatus status);
 
     @Query("SELECT ss FROM StaffSchedule ss WHERE ss.date = :date AND ss.status = 'SCHEDULED' " +
            "AND ss.shift.startTime <= CURRENT_TIME")
     List<StaffSchedule> findLateCheckIns(@Param("date") LocalDate date);
+
+    long countByShiftAndDate(Shift shift, LocalDate date);
 }

@@ -26,4 +26,7 @@ public class Shift {
 
     @Column(nullable = false)
     private LocalTime endTime;
+
+    @Column
+    private Integer maxStaff;  // null = khong gioi han
 }

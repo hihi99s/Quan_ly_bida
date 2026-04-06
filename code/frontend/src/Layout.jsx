@@ -4,14 +4,16 @@ import { NavLink, Outlet } from 'react-router-dom';
 const navItems = [
   { to: '/', icon: '📊', label: 'Tổng Quan' },
   { to: '/tables', icon: '🎱', label: 'Quản Lý Bàn' },
-  { to: '/reports', icon: '📈', label: 'Báo Cáo' },
-  { to: '/products', icon: '🍺', label: 'Sản Phẩm' },
+  { to: '/reports', icon: '📈', label: 'Báo Cáo', adminOnly: true },
+  { to: '/products', icon: '🍺', label: 'Sản Phẩm', adminOnly: true },
   { to: '/invoices', icon: '🧾', label: 'Lịch Sử Hóa Đơn' },
   { to: '/customers', icon: '👥', label: 'Khách Hàng' },
-  { to: '/staff', icon: '👤', label: 'Lịch Nhân Viên' },
-  { to: '/prices', icon: '💲', label: 'Bảng Giá Bida' },
-  { to: '/holidays', icon: '📅', label: 'Cấu Hình Ngày Lễ' },
-  { to: '/discounts', icon: '🏷️', label: 'Mã Giảm Giá' },
+  { to: '/staff', icon: '👤', label: 'Quản Lý Nhân Sự', adminOnly: true },
+  { to: '/schedules', icon: '📆', label: 'Lịch Làm Việc', adminOnly: true },
+  { to: '/my-schedules', icon: '⏰', label: 'Lịch Làm Của Tôi' },
+  { to: '/prices', icon: '💲', label: 'Bảng Giá Bida', adminOnly: true },
+  { to: '/holidays', icon: '📅', label: 'Cấu Hình Ngày Lễ', adminOnly: true },
+  { to: '/discounts', icon: '🏷️', label: 'Mã Giảm Giá', adminOnly: true },
   { to: '/reservations', icon: '📅', label: 'Đặt Bàn' },
 ];
 
@@ -45,7 +47,7 @@ export default function Layout({ user, onLogout }) {
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {navItems.map(item => (
+          {navItems.filter(item => !item.adminOnly || user.role === 'ADMIN').map(item => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -101,13 +103,6 @@ export default function Layout({ user, onLogout }) {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Search - desktop only */}
-            <div className="hidden md:flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input type="text" placeholder="Tìm kiếm..." className="bg-transparent text-sm text-white placeholder-slate-400 outline-none w-40" />
-            </div>
 
             {/* User badge */}
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5">

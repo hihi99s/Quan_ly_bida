@@ -8,7 +8,9 @@ import TablesPage from './pages/TablesPage';
 import ProductsPage from './pages/ProductsPage';
 import CustomersPage from './pages/CustomersPage';
 import InvoicesPage from './pages/InvoicesPage';
-import StaffPage from './pages/StaffPage';
+import UsersPage from './pages/UsersPage';
+import StaffSchedulePage from './pages/StaffSchedulePage';
+import MySchedulesPage from './pages/MySchedulesPage';
 import PricesPage from './pages/PricesPage';
 import HolidaysPage from './pages/HolidaysPage';
 import DiscountsPage from './pages/DiscountsPage';
@@ -39,7 +41,7 @@ export default function App() {
   }
 
   function handleLogin(data) {
-    setUser({ authenticated: true, username: data.username, role: data.role });
+    setUser({ authenticated: true, id: data.id, username: data.username, role: data.role });
   }
 
   function handleLogout() {
@@ -57,20 +59,27 @@ export default function App() {
     );
   }
 
+  function AdminRoute({ user, children }) {
+    if (user?.role !== 'ADMIN') return <Navigate to="/" replace />;
+    return children;
+  }
+
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<Layout user={user} onLogout={handleLogout} />}>
           <Route index element={<DashboardPage />} />
-          <Route path="tables" element={<TablesPage />} />
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="products" element={<ProductsPage />} />
+          <Route path="tables" element={<TablesPage user={user} />} />
+          <Route path="reports" element={<AdminRoute user={user}><ReportsPage /></AdminRoute>} />
+          <Route path="products" element={<AdminRoute user={user}><ProductsPage /></AdminRoute>} />
           <Route path="invoices" element={<InvoicesPage />} />
           <Route path="customers" element={<CustomersPage />} />
-          <Route path="staff" element={<StaffPage />} />
-          <Route path="prices" element={<PricesPage />} />
-          <Route path="holidays" element={<HolidaysPage />} />
-          <Route path="discounts" element={<DiscountsPage />} />
+          <Route path="staff" element={<AdminRoute user={user}><UsersPage /></AdminRoute>} />
+          <Route path="schedules" element={<AdminRoute user={user}><StaffSchedulePage /></AdminRoute>} />
+          <Route path="my-schedules" element={<MySchedulesPage user={user} />} />
+          <Route path="prices" element={<AdminRoute user={user}><PricesPage /></AdminRoute>} />
+          <Route path="holidays" element={<AdminRoute user={user}><HolidaysPage /></AdminRoute>} />
+          <Route path="discounts" element={<AdminRoute user={user}><DiscountsPage /></AdminRoute>} />
           <Route path="reservations" element={<ReservationsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

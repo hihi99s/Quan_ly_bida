@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { tableApi, customerApi, productApi, formatMoney, formatTime } from '../api';
 
-export default function TablesPage() {
+export default function TablesPage({ user }) {
   const [tables, setTables] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [products, setProducts] = useState([]);
@@ -16,6 +16,7 @@ export default function TablesPage() {
   const [selectedProductId, setSelectedProductId] = useState('');
   const [orderQuantity, setOrderQuantity] = useState(1);
   const [targetTableId, setTargetTableId] = useState('');
+  const [tableFormData, setTableFormData] = useState({ name: '', tableType: 'POOL' });
   
   // Checkout states
   const [checkoutResult, setCheckoutResult] = useState(null);
@@ -92,6 +93,7 @@ export default function TablesPage() {
     setOrderQuantity(1);
     setDiscountCode('');
     setManualTableCharge('');
+    setTableFormData({ name: '', tableType: 'POOL' });
   }
 
   async function handleStartSession() {
@@ -173,10 +175,55 @@ export default function TablesPage() {
     }
   }
 
+  // ─── Admin Actions ───
+  function openAddTable() {
+    setTableFormData({ name: '', tableType: 'POOL' });
+    setModalType('ADD_TABLE');
+  }
+
+  function openEditTable(e, table) {
+    e.stopPropagation();
+    setActiveTable(table);
+    setTableFormData({ name: table.name, tableType: table.tableType });
+    setModalType('EDIT_TABLE');
+  }
+
+  async function handleSaveTable(e) {
+    e.preventDefault();
+    try {
+      if (modalType === 'ADD_TABLE') {
+        await tableApi.create(tableFormData);
+      } else {
+        await tableApi.update(activeTable.id, tableFormData);
+      }
+      await loadTables();
+      closeModal();
+    } catch (e) {
+      alert('Lỗi lưu bàn: ' + e.message);
+    }
+  }
+
+  async function handleDeleteTable() {
+    if (!confirm(`Bạn có chắc chắn muốn XÓA bàn [${activeTable.name}]? Thao tác này không thể hoàn tác.`)) return;
+    try {
+      await tableApi.delete(activeTable.id);
+      await loadTables();
+      closeModal();
+    } catch (e) {
+      alert('Lỗi xóa bàn: ' + e.message);
+    }
+  }
+
   // ─── Rendering Helpers ───
   function getCardClass(status) {
     const map = { PLAYING: 'table-card-playing', PAUSED: 'table-card-paused', RESERVED: 'table-card-reserved', MAINTENANCE: 'table-card-maintenance' };
     return map[status] || 'table-card-available';
+  }
+
+  function formatDateTime(isoString) {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' ' + d.toLocaleDateString('vi-VN');
   }
 
   if (loading) {
@@ -185,13 +232,21 @@ export default function TablesPage() {
 
   return (
     <div className="space-y-6 animate-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">🎱 Quản Lý Bàn Chơi</h2>
-        <div className="flex gap-4 text-xs font-semibold">
-           <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-emerald-500 mt-0.5" /> Trống</div>
-           <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500 mt-0.5 animate-pulse" /> Đang chơi</div>
-           <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-amber-500 mt-0.5" /> Tạm dừng</div>
+        <div className="flex flex-1 justify-center gap-4 text-[10px] sm:text-xs font-semibold whitespace-nowrap overflow-x-auto no-scrollbar py-1">
+           <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Trống</div>
+           <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" /> Đang chơi</div>
+           <div className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Tạm dừng</div>
         </div>
+        {user?.role === 'ADMIN' && (
+          <button 
+            onClick={openAddTable}
+            className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg whitespace-nowrap text-sm shadow-lg shadow-cyan-900/40"
+          >
+            + Thêm Bàn Mới
+          </button>
+        )}
       </div>
 
       {/* Grid of Tables */}
@@ -209,7 +264,17 @@ export default function TablesPage() {
             )}
             
             <div className="flex items-center justify-between mb-3 border-b border-white/10 pb-2">
-              <span className="font-extrabold text-white text-base tracking-wide">{table.name}</span>
+              <span className="font-extrabold text-white text-base tracking-wide flex items-center gap-2">
+                {table.name}
+                {user?.role === 'ADMIN' && table.status === 'AVAILABLE' && (
+                  <button 
+                    onClick={(e) => openEditTable(e, table)}
+                    className="p-1 hover:bg-white/10 rounded-md transition-colors"
+                  >
+                    ✏️
+                  </button>
+                )}
+              </span>
               <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/10 font-bold uppercase text-slate-300">
                 {table.tableType}
               </span>
@@ -241,7 +306,7 @@ export default function TablesPage() {
 
       {/* ─── MODAL START ─── */}
       {modalType === 'START' && activeTable && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-in">
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-start sm:items-center justify-center p-4 overflow-y-auto py-6 sm:py-10 animate-in scroll-smooth">
           <div className="glass-card w-full max-w-md p-6 relative">
             <button onClick={closeModal} className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">✕</button>
             <h3 className="text-xl font-bold text-white mb-4">▶ Bắt Đầu - {activeTable.name}</h3>
@@ -269,8 +334,8 @@ export default function TablesPage() {
 
       {/* ─── MODAL MANAGE (Tương tác bàn đang chơi) ─── */}
       {modalType === 'MANAGE' && activeTable && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-in">
-          <div className="glass-card w-full max-w-2xl flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-start sm:items-center justify-center p-4 overflow-y-auto py-6 sm:py-10 animate-in scroll-smooth">
+          <div className="glass-card w-full max-w-3xl flex flex-col max-h-[90vh]">
             {/* Header */}
             <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/20 rounded-t-xl">
               <h3 className="text-xl font-bold text-white flex items-center gap-2">
@@ -332,19 +397,31 @@ export default function TablesPage() {
                 <h4 className="font-bold text-white mb-3">🍺 Gọi Món Đồ Uống/Đồ Ăn</h4>
                 
                 {/* Form gọi thêm */}
-                <div className="flex gap-2 mb-4 bg-navy-900 p-2 rounded-lg border border-white/10">
-                  <select 
-                    value={selectedProductId} onChange={e => setSelectedProductId(e.target.value)}
-                    className="flex-1 bg-transparent text-white text-sm outline-none px-1"
-                  >
-                    <option value="" className="text-black">-- Chọn sản phẩm --</option>
-                    {products.map(p => <option key={p.id} value={p.id} className="text-black">{p.name} - {formatMoney(p.price)}</option>)}
-                  </select>
+                <div className="flex flex-nowrap items-center gap-2 mb-4 bg-navy-900 p-2 rounded-lg border border-white/10">
+                  <div className="flex-1 flex items-center gap-2 min-w-0">
+                    {selectedProductId && products.find(p => p.id === parseInt(selectedProductId))?.imageUrl && (
+                      <img 
+                        src={products.find(p => p.id === parseInt(selectedProductId)).imageUrl} 
+                        alt="p" 
+                        className="w-8 h-8 rounded object-cover border border-white/10" 
+                      />
+                    )}
+                    <select 
+                      value={selectedProductId} onChange={e => setSelectedProductId(e.target.value)}
+                      className="flex-1 bg-transparent text-white text-sm outline-none px-1 min-w-0"
+                    >
+                      <option value="" className="text-black">-- Chọn sản phẩm --</option>
+                      {products.map(p => <option key={p.id} value={p.id} className="text-black">{p.name} - {formatMoney(p.price)}</option>)}
+                    </select>
+                  </div>
                   <input 
                     type="number" min="1" value={orderQuantity} onChange={e => setOrderQuantity(e.target.value)}
-                    className="w-16 bg-white/5 border border-white/20 rounded px-2 text-white text-center"
+                    className="w-14 bg-white/5 border border-white/20 rounded px-1 py-1 text-white text-center shrink-0"
                   />
-                  <button onClick={handleAddOrder} className="px-3 py-1 bg-cyan-600 hover:bg-cyan-500 rounded text-white font-bold text-sm">
+                  <button 
+                    onClick={handleAddOrder}
+                    className="shrink-0 px-4 py-1.5 bg-cyan-600 hover:bg-cyan-500 rounded text-white font-bold text-sm transition-colors"
+                  >
                     Thêm
                   </button>
                 </div>
@@ -378,7 +455,7 @@ export default function TablesPage() {
 
       {/* ─── MODAL TRANSFER ─── */}
       {modalType === 'TRANSFER' && activeTable && (
-        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4 animate-in">
+        <div className="fixed inset-0 z-[60] bg-black/80 flex items-start sm:items-center justify-center p-4 overflow-y-auto py-6 sm:py-10 animate-in scroll-smooth">
           <div className="glass-card w-full max-w-sm p-6 relative">
             <h3 className="text-xl font-bold text-white mb-4">🔁 Chuyển Bàn</h3>
             <div className="mb-2 text-slate-400 text-sm">Từ: <strong className="text-white">{activeTable.name}</strong></div>
@@ -405,7 +482,7 @@ export default function TablesPage() {
 
       {/* ─── MODAL CHECKOUT & RECEIPT ─── */}
       {modalType === 'CHECKOUT' && activeTable && (
-        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4 animate-in">
+        <div className="fixed inset-0 z-[60] bg-black/80 flex items-start sm:items-center justify-center p-4 overflow-y-auto py-6 sm:py-10 animate-in scroll-smooth">
           <div className="bg-white w-full max-w-md rounded-lg shadow-2xl overflow-hidden print-area text-slate-800">
             {checkoutResult ? (
               /* Biên lai thanh toán thành công */
@@ -418,6 +495,8 @@ export default function TablesPage() {
                 <div className="space-y-3 mb-6 font-mono text-sm">
                   <div className="flex justify-between"><span>Mã hóa đơn:</span> <strong className="select-all">{checkoutResult.invoiceNumber}</strong></div>
                   <div className="flex justify-between"><span>Bàn:</span> <strong>{activeTable.name}</strong></div>
+                  <div className="flex justify-between text-[11px] text-slate-500 border-t border-slate-100 pt-1 mt-1"><span>Giờ vào:</span> <span>{formatDateTime(checkoutResult.startTime)}</span></div>
+                  <div className="flex justify-between text-[11px] text-slate-500 pb-1"><span>Giờ ra:</span> <span>{formatDateTime(checkoutResult.endTime)}</span></div>
                   <div className="flex justify-between"><span>Tiền giờ:</span> <span>{formatMoney(checkoutResult.tableCharge)}</span></div>
                   <div className="flex justify-between"><span>Tiền đồ uống:</span> <span>{formatMoney(checkoutResult.serviceCharge)}</span></div>
                   {(checkoutResult.discount > 0 || checkoutResult.codeDiscountAmount > 0) && (
@@ -468,6 +547,67 @@ export default function TablesPage() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+      {/* ─── MODAL ADD/EDIT TABLE (Admin Only) ─── */}
+      {(modalType === 'ADD_TABLE' || modalType === 'EDIT_TABLE') && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 animate-in">
+          <div className="glass-card w-full max-w-md p-6 relative">
+            <button onClick={closeModal} className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">✕</button>
+            <h3 className="text-xl font-bold text-white mb-6">
+              {modalType === 'ADD_TABLE' ? '🎱 Thêm Bàn Bida Mới' : '✏️ Sửa Thông Tin Bàn'}
+            </h3>
+            
+            <form onSubmit={handleSaveTable} className="space-y-4">
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Tên bàn *</label>
+                <input 
+                  required type="text" 
+                  value={tableFormData.name} 
+                  onChange={e => setTableFormData({...tableFormData, name: e.target.value})} 
+                  placeholder="VD: Bàn 01"
+                  className="w-full bg-navy-900 border border-white/10 rounded-lg p-3 text-white focus:border-cyan-500 outline-none" 
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-slate-400 mb-1">Loại bàn *</label>
+                <select 
+                  value={tableFormData.tableType} 
+                  onChange={e => setTableFormData({...tableFormData, tableType: e.target.value})} 
+                  className="w-full bg-navy-900 border border-white/10 rounded-lg p-3 text-white focus:border-cyan-500 outline-none"
+                >
+                  <option value="POOL">Bàn Lỗ (POOL)</option>
+                  <option value="CAROM">Bàn Carom (3 Băng / Phăng)</option>
+                  <option value="VIP">Bàn VIP</option>
+                </select>
+              </div>
+              
+              <div className="pt-4 flex gap-3">
+                {modalType === 'EDIT_TABLE' && (
+                  <button 
+                    type="button" 
+                    onClick={handleDeleteTable} 
+                    className="px-4 py-3 rounded-lg font-bold bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                  >
+                    🗑️
+                  </button>
+                )}
+                <button 
+                  type="button" 
+                  onClick={closeModal} 
+                  className="flex-1 py-3 rounded-lg font-bold bg-white/5 text-slate-400 hover:bg-white/10"
+                >
+                  Hủy
+                </button>
+                <button 
+                  type="submit" 
+                  className="flex-[2] py-3 rounded-lg font-bold bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-900/40"
+                >
+                  Lưu Lại
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

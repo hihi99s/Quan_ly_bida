@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { userApi } from '../api';
 
-export default function StaffPage() {
+export default function UsersPage() {
   const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');

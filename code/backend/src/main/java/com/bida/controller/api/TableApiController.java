@@ -5,10 +5,12 @@ import com.bida.entity.BilliardTable;
 import com.bida.entity.Invoice;
 import com.bida.entity.OrderItem;
 import com.bida.entity.Session;
+import com.bida.entity.enums.TableType;
 import com.bida.service.*;
 import com.bida.websocket.TableStatusBroadcaster;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -89,6 +91,8 @@ public class TableApiController {
                 Invoice inv = invoice.get();
                 response.put("invoiceId", inv.getId());
                 response.put("invoiceNumber", inv.getInvoiceNumber());
+                response.put("startTime", session.getStartTime());
+                response.put("endTime", session.getEndTime());
                 response.put("tableCharge", inv.getTableCharge());
                 response.put("serviceCharge", inv.getServiceCharge());
                 response.put("discount", inv.getDiscount());
@@ -250,6 +254,57 @@ public class TableApiController {
             broadcaster.broadcastAllTables();
             return ResponseEntity.ok(Map.of("success", true, "message", "Da xoa mon"));
         } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    // ---- Admin Table Management (CRUD) ----
+
+    /**
+     * POST /api/tables - Tao ban moi (Admin only).
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> createTable(@RequestBody Map<String, Object> body) {
+        try {
+            String name = (String) body.get("name");
+            TableType type = TableType.valueOf((String) body.get("tableType"));
+            BilliardTable table = tableService.createTable(name, type);
+            broadcaster.broadcastAllTables();
+            return ResponseEntity.ok(Map.of("success", true, "message", "Da tao ban moi", "table", table));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * PUT /api/tables/{id} - Cap nhat thong tin ban (Admin only).
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> updateTable(@PathVariable Long id, @RequestBody Map<String, Object> body) {
+        try {
+            String name = (String) body.get("name");
+            TableType type = TableType.valueOf((String) body.get("tableType"));
+            BilliardTable table = tableService.updateTable(id, name, type);
+            broadcaster.broadcastAllTables();
+            return ResponseEntity.ok(Map.of("success", true, "message", "Da cap nhat ban", "table", table));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        }
+    }
+
+    /**
+     * DELETE /api/tables/{id} - Xoa ban (Admin only).
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteTable(@PathVariable Long id) {
+        try {
+            tableService.deleteTable(id);
+            broadcaster.broadcastAllTables();
+            return ResponseEntity.ok(Map.of("success", true, "message", "Da xoa ban thanh cong"));
+        } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
         }
     }

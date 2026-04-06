@@ -40,9 +40,15 @@ export default function ReservationsPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      // Chuyển startTime thành ISO string 
-      const isoTime = new Date(formData.startTime).toISOString();
-      await reservationApi.create({ ...formData, startTime: isoTime });
+      const customer = customers.find(c => String(c.id) === String(formData.customerId));
+      const payload = {
+        tableId: formData.tableId,
+        customerName: customer ? customer.name : 'Khách không tên',
+        customerPhone: customer ? customer.phone : '',
+        reservedTime: formData.startTime, // Giữ nguyên format YYYY-MM-DDTHH:mm từ input
+        note: formData.note
+      };
+      await reservationApi.create(payload);
       setShowModal(false);
       setFormData({ tableId: '', customerId: '', startTime: '', note: '' });
       loadData();
@@ -65,7 +71,8 @@ export default function ReservationsPage() {
   if (loading) return <div className="flex justify-center p-20"><div className="w-10 h-10 border-4 animate-spin border-t-cyan border-cyan/30 rounded-full" /></div>;
 
   return (
-    <div className="space-y-6 animate-in">
+    <>
+      <div className="space-y-6 animate-in">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">📅 Quản Lý Đặt Bàn</h2>
         <button 
@@ -99,9 +106,7 @@ export default function ReservationsPage() {
                     <div className="font-medium text-slate-200">{r.customerName}</div>
                     <div className="text-xs text-slate-500">{r.customerPhone}</div>
                   </td>
-                  <td className="p-4 text-cyan-400 font-mono">
-                    {new Date(r.startTime).toLocaleString('vi-VN')}
-                  </td>
+                  <td className="px-4 py-4 text-white font-mono">{r.reservedTime?.replace('T', ' ')}</td>
                   <td className="p-4 italic text-xs truncate max-w-xs">{r.note || '-'}</td>
                   <td className="p-4">
                     <span className="px-2 py-1 rounded-full bg-amber-500/20 text-amber-500 text-[10px] font-bold uppercase border border-amber-500/20">
@@ -123,9 +128,11 @@ export default function ReservationsPage() {
         </table>
       </div>
 
+      </div>
+ 
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 animate-in">
-          <form onSubmit={handleSubmit} className="glass-card w-full max-w-md p-6 relative">
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-start sm:items-center justify-center p-4 overflow-y-auto py-6 sm:py-10 animate-in scroll-smooth">
+          <form onSubmit={handleSubmit} className="glass-card w-full max-w-md p-6 my-auto relative">
             <button type="button" onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">✕</button>
             <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2">📝 Form Đặt Bàn</h3>
             
@@ -191,6 +198,6 @@ export default function ReservationsPage() {
           </form>
         </div>
       )}
-    </div>
+    </>
   );
 }
