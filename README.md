@@ -7,99 +7,99 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-06B6D4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
 
-Ung dung web full-stack quan ly quan bida, ho tro theo doi ban choi theo thoi gian thuc, tinh tien tu dong, quan ly kho hang (do an & nuoc uong), phan quyen nguoi dung va bao cao doanh thu.
+Ứng dụng web full-stack quản lý quán bida, hỗ trợ theo dõi bàn chơi theo thời gian thực, tính tiền tự động, quản lý kho hàng (đồ ăn & nước uống), phân quyền người dùng và báo cáo doanh thu.
 
 ---
 
-## Muc Luc
+## Mục Lục
 
-- [Tinh Nang Chinh](#tinh-nang-chinh)
-- [Cong Nghe Su Dung](#cong-nghe-su-dung)
-- [Cau Truc Du An](#cau-truc-du-an)
-- [Huong Dan Cai Dat](#huong-dan-cai-dat)
-- [Tai Khoan Mac Dinh](#tai-khoan-mac-dinh)
+- [Tính Năng Chính](#tính-năng-chính)
+- [Công Nghệ Sử Dụng](#công-nghệ-sử-dụng)
+- [Cấu Trúc Dự Án](#cấu-trúc-dự-án)
+- [Hướng Dẫn Cài Đặt](#hướng-dẫn-cài-đặt)
+- [Tài Khoản Mặc Định](#tài-khoản-mặc-định)
 - [API Endpoints](#api-endpoints)
-- [Co So Du Lieu](#co-so-du-lieu)
-- [Phan Quyen](#phan-quyen)
-- [Trien Khai Voi Docker](#trien-khai-voi-docker)
+- [Cơ Sở Dữ Liệu](#cơ-sở-dữ-liệu)
+- [Phân Quyền](#phân-quyền)
+- [Triển Khai Với Docker](#triển-khai-với-docker)
 - [CI/CD](#cicd)
 
 ---
 
-## Tinh Nang Chinh
+## Tính Năng Chính
 
-| Tinh nang | Mo ta |
+| Tính năng | Mô tả |
 |-----------|-------|
-| **Quan ly ban choi** | Theo doi trang thai ban (Pool, Carom, VIP) theo thoi gian thuc qua WebSocket |
-| **Tinh tien tu dong** | Tinh chi phi dua tren thoi gian choi, loai ban, khung gio, ngay le/cuoi tuan |
-| **Quan ly hoa don** | Tao hoa don chi tiet voi thong tin ban choi, do an/uong, giam gia |
-| **Quan ly san pham** | He thong POS cho do an & nuoc uong, canh bao ton kho thap |
-| **Quan ly khach hang** | Ho so khach hang, tich diem thanh vien (Bronze/Silver/Gold/Diamond) |
-| **Dat ban truoc** | He thong dat ban voi theo doi trang thai |
-| **Lich nghi le** | Cau hinh ngay le de tu dong ap dung phu phi |
-| **Ma giam gia** | Quan ly ma khuyen mai theo phan tram |
-| **Bao cao & Thong ke** | Bieu do doanh thu, san pham ban chay, khach hang VIP, hieu suat ban |
-| **Lich lam viec** | Phan ca, theo doi cham cong, lich lam viec ca nhan |
-| **Xuat PDF** | In hoa don dinh dang PDF voi iText |
+| **Quản lý bàn chơi** | Theo dõi trạng thái bàn (Pool, Carom, VIP) theo thời gian thực qua WebSocket |
+| **Tính tiền tự động** | Tính chi phí dựa trên thời gian chơi, loại bàn, khung giờ, ngày lễ/cuối tuần |
+| **Quản lý hoá đơn** | Tạo hoá đơn chi tiết với thông tin bàn chơi, đồ ăn/uống, giảm giá |
+| **Quản lý sản phẩm** | Hệ thống POS cho đồ ăn & nước uống, cảnh báo tồn kho thấp |
+| **Quản lý khách hàng** | Hồ sơ khách hàng, tích điểm thành viên (Bronze/Silver/Gold/Diamond) |
+| **Đặt bàn trước** | Hệ thống đặt bàn với theo dõi trạng thái |
+| **Lịch nghỉ lễ** | Cấu hình ngày lễ để tự động áp dụng phụ phí |
+| **Mã giảm giá** | Quản lý mã khuyến mãi theo phần trăm |
+| **Báo cáo & Thống kê** | Biểu đồ doanh thu, sản phẩm bán chạy, khách hàng VIP, hiệu suất bàn |
+| **Lịch làm việc** | Phân ca, theo dõi chấm công, lịch làm việc cá nhân |
+| **Xuất PDF** | In hoá đơn định dạng PDF với iText |
 
 ---
 
-## Cong Nghe Su Dung
+## Công Nghệ Sử Dụng
 
 ### Backend
 
-| Thanh phan | Cong nghe |
+| Thành phần | Công nghệ |
 |------------|-----------|
 | Framework | Spring Boot 3.2.5 |
-| Ngon ngu | Java 17 |
+| Ngôn ngữ | Java 17 |
 | Build tool | Maven 3.9 |
 | ORM | Spring Data JPA / Hibernate |
-| Co so du lieu | MySQL 8.0 |
-| Bao mat | Spring Security 6 (Session-based, BCrypt) |
+| Cơ sở dữ liệu | MySQL 8.0 |
+| Bảo mật | Spring Security 6 (Session-based, BCrypt) |
 | WebSocket | STOMP + SockJS |
-| Xuat PDF | iText 7.2.5 |
-| Utilities | Lombok, Spring DevTools |
+| Xuất PDF | iText 7.2.5 |
+| Tiện ích | Lombok, Spring DevTools |
 
 ### Frontend
 
-| Thanh phan | Cong nghe |
+| Thành phần | Công nghệ |
 |------------|-----------|
 | Framework | React 19 |
 | Build tool | Vite 8 |
 | CSS | Tailwind CSS 4 |
 | Router | React Router DOM 7 |
-| Bieu do | Chart.js + react-chartjs-2 |
+| Biểu đồ | Chart.js + react-chartjs-2 |
 | PWA | Vite PWA Plugin (Workbox) |
 
 ---
 
-## Cau Truc Du An
+## Cấu Trúc Dự Án
 
 ```
 do_an_J2EE/
 ├── code/
 │   ├── backend/                          # Spring Boot API
 │   │   ├── src/main/java/com/bida/
-│   │   │   ├── billing/                  # Logic tinh tien (SegmentSplitter, PricingStrategy)
+│   │   │   ├── billing/                  # Logic tính tiền (SegmentSplitter, PricingStrategy)
 │   │   │   ├── config/                   # Security, WebSocket, DataSeeder
 │   │   │   ├── controller/
 │   │   │   │   ├── admin/                # Controller trang admin (Thymeleaf)
 │   │   │   │   └── api/                  # REST API controllers
 │   │   │   ├── dto/                      # Data Transfer Objects
-│   │   │   ├── entity/                   # JPA entities (17 bang)
+│   │   │   ├── entity/                   # JPA entities (17 bảng)
 │   │   │   ├── repository/               # Spring Data repositories
 │   │   │   ├── service/                  # Business logic (17 services)
-│   │   │   └── websocket/               # Phat trang thai ban theo thoi gian thuc
+│   │   │   └── websocket/               # Phát trạng thái bàn theo thời gian thực
 │   │   ├── src/main/resources/
 │   │   │   ├── templates/                # Thymeleaf templates
-│   │   │   └── application.properties    # Cau hinh ung dung
+│   │   │   └── application.properties    # Cấu hình ứng dụng
 │   │   ├── Dockerfile
 │   │   └── pom.xml
 │   │
 │   └── frontend/                         # React SPA
 │       ├── src/
-│       │   ├── pages/                    # 18 trang giao dien
-│       │   ├── App.jsx                   # Router & xac thuc
+│       │   ├── pages/                    # 18 trang giao diện
+│       │   ├── App.jsx                   # Router & xác thực
 │       │   ├── Layout.jsx                # Sidebar & navigation
 │       │   └── api.js                    # API client
 │       ├── vite.config.js
@@ -111,22 +111,22 @@ do_an_J2EE/
 
 ---
 
-## Huong Dan Cai Dat
+## Hướng Dẫn Cài Đặt
 
-### Yeu Cau He Thong
+### Yêu Cầu Hệ Thống
 
-- Java 17 JDK tro len
-- Node.js 18+ va npm
+- Java 17 JDK trở lên
+- Node.js 18+ và npm
 - MySQL 8.0
 - Maven 3.9+
 
-### 1. Cai Dat Co So Du Lieu
+### 1. Cài Đặt Cơ Sở Dữ Liệu
 
 ```sql
 CREATE DATABASE bida_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-Cau hinh ket noi trong `code/backend/src/main/resources/application.properties`:
+Cấu hình kết nối trong `code/backend/src/main/resources/application.properties`:
 
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/bida_db
@@ -134,9 +134,9 @@ spring.datasource.username=root
 spring.datasource.password=
 ```
 
-> He thong su dung `ddl-auto=update` nen cac bang se duoc tao tu dong khi chay lan dau.
+> Hệ thống sử dụng `ddl-auto=update` nên các bảng sẽ được tạo tự động khi chạy lần đầu.
 
-### 2. Khoi Dong Backend
+### 2. Khởi Động Backend
 
 ```bash
 cd code/backend
@@ -144,9 +144,9 @@ mvn clean install
 mvn spring-boot:run
 ```
 
-Backend chay tai `http://localhost:8080`. Du lieu mau (ban choi, san pham, tai khoan, gia) se duoc tu dong tao khi khoi dong lan dau.
+Backend chạy tại `http://localhost:8080`. Dữ liệu mẫu (bàn chơi, sản phẩm, tài khoản, giá) sẽ được tự động tạo khi khởi động lần đầu.
 
-### 3. Khoi Dong Frontend
+### 3. Khởi Động Frontend
 
 ```bash
 cd code/frontend
@@ -154,104 +154,104 @@ npm install
 npm run dev
 ```
 
-Frontend chay tai `http://localhost:5173`. API duoc proxy tu dong sang backend qua cau hinh Vite.
+Frontend chạy tại `http://localhost:5173`. API được proxy tự động sang backend qua cấu hình Vite.
 
 ---
 
-## Tai Khoan Mac Dinh
+## Tài Khoản Mặc Định
 
-| Vai tro | Ten dang nhap | Mat khau |
+| Vai trò | Tên đăng nhập | Mật khẩu |
 |---------|---------------|----------|
 | Admin | `admin` | `admin123` |
-| Nhan vien | `staff1` | `staff123` |
+| Nhân viên | `staff1` | `staff123` |
 
-> Du lieu mau duoc tao boi `DataSeeder`: 10 ban choi, 27 quy tac gia, 10 san pham, 5 ca lam viec.
+> Dữ liệu mẫu được tạo bởi `DataSeeder`: 10 bàn chơi, 27 quy tắc giá, 10 sản phẩm, 5 ca làm việc.
 
 ---
 
 ## API Endpoints
 
-### Xac Thuc (`/api/auth`)
+### Xác Thực (`/api/auth`)
 
-| Phuong thuc | Duong dan | Mo ta |
+| Phương thức | Đường dẫn | Mô tả |
 |-------------|-----------|-------|
-| POST | `/api/auth/login` | Dang nhap |
-| POST | `/api/auth/logout` | Dang xuat |
-| GET | `/api/auth/me` | Thong tin nguoi dung hien tai |
+| POST | `/api/auth/login` | Đăng nhập |
+| POST | `/api/auth/logout` | Đăng xuất |
+| GET | `/api/auth/me` | Thông tin người dùng hiện tại |
 
-### Quan Ly Ban (`/api/tables`)
+### Quản Lý Bàn (`/api/tables`)
 
-| Phuong thuc | Duong dan | Mo ta |
+| Phương thức | Đường dẫn | Mô tả |
 |-------------|-----------|-------|
-| GET | `/api/tables` | Danh sach ban va trang thai |
-| POST | `/api/tables/{id}/start` | Bat dau phien choi |
-| POST | `/api/tables/{id}/end` | Ket thuc & tinh tien |
-| POST | `/api/tables/{id}/pause` | Tam dung phien |
-| POST | `/api/tables/{id}/resume` | Tiep tuc phien |
-| POST | `/api/tables/{id}/transfer` | Chuyen ban |
-| POST | `/api/tables/{id}/maintenance` | Bat/tat che do bao tri |
-| GET | `/api/tables/{id}/orders` | Danh sach order cua phien |
-| POST | `/api/tables/{id}/orders` | Them order |
+| GET | `/api/tables` | Danh sách bàn và trạng thái |
+| POST | `/api/tables/{id}/start` | Bắt đầu phiên chơi |
+| POST | `/api/tables/{id}/end` | Kết thúc & tính tiền |
+| POST | `/api/tables/{id}/pause` | Tạm dừng phiên |
+| POST | `/api/tables/{id}/resume` | Tiếp tục phiên |
+| POST | `/api/tables/{id}/transfer` | Chuyển bàn |
+| POST | `/api/tables/{id}/maintenance` | Bật/tắt chế độ bảo trì |
+| GET | `/api/tables/{id}/orders` | Danh sách order của phiên |
+| POST | `/api/tables/{id}/orders` | Thêm order |
 
 ### Dashboard (`/api/dashboard`)
 
-| Phuong thuc | Duong dan | Mo ta |
+| Phương thức | Đường dẫn | Mô tả |
 |-------------|-----------|-------|
-| GET | `/api/dashboard/full` | Toan bo du lieu dashboard |
-| GET | `/api/dashboard/summary` | Tong quan he thong |
-| GET | `/api/dashboard/kpis` | Chi so KPI |
-| GET | `/api/dashboard/revenue-chart` | Bieu do doanh thu |
-| GET | `/api/dashboard/top-products` | San pham ban chay |
-| GET | `/api/dashboard/top-customers` | Khach hang hang dau |
+| GET | `/api/dashboard/full` | Toàn bộ dữ liệu dashboard |
+| GET | `/api/dashboard/summary` | Tổng quan hệ thống |
+| GET | `/api/dashboard/kpis` | Chỉ số KPI |
+| GET | `/api/dashboard/revenue-chart` | Biểu đồ doanh thu |
+| GET | `/api/dashboard/top-products` | Sản phẩm bán chạy |
+| GET | `/api/dashboard/top-customers` | Khách hàng hàng đầu |
 
-### Cac API Khac
+### Các API Khác
 
-| Module | Duong dan | Mo ta |
+| Module | Đường dẫn | Mô tả |
 |--------|-----------|-------|
-| Hoa don | `/api/invoices` | CRUD hoa don |
-| San pham | `/api/products` | CRUD san pham |
-| Khach hang | `/api/customers` | CRUD khach hang |
-| Gia | `/api/prices` | CRUD quy tac gia |
-| Dat ban | `/api/reservations` | CRUD dat ban |
-| Ma giam gia | `/api/discounts` | CRUD ma khuyen mai |
-| Ngay le | `/api/holidays` | CRUD lich nghi le |
-| Lich lam viec | `/api/schedules` | CRUD ca lam viec |
-| Bao cao | `/api/reports` | Bao cao doanh thu |
-| Nhan vien | `/api/users` | CRUD tai khoan |
+| Hoá đơn | `/api/invoices` | CRUD hoá đơn |
+| Sản phẩm | `/api/products` | CRUD sản phẩm |
+| Khách hàng | `/api/customers` | CRUD khách hàng |
+| Giá | `/api/prices` | CRUD quy tắc giá |
+| Đặt bàn | `/api/reservations` | CRUD đặt bàn |
+| Mã giảm giá | `/api/discounts` | CRUD mã khuyến mãi |
+| Ngày lễ | `/api/holidays` | CRUD lịch nghỉ lễ |
+| Lịch làm việc | `/api/schedules` | CRUD ca làm việc |
+| Báo cáo | `/api/reports` | Báo cáo doanh thu |
+| Nhân viên | `/api/users` | CRUD tài khoản |
 
 ### WebSocket
 
 ```
 Endpoint:    /ws (STOMP + SockJS)
-Subscribe:   /topic/tables    — Nhan cap nhat trang thai ban moi 5 giay
+Subscribe:   /topic/tables    — Nhận cập nhật trạng thái bàn mỗi 5 giây
 ```
 
 ---
 
-## Co So Du Lieu
+## Cơ Sở Dữ Liệu
 
-### So Do Thuc The (17 bang)
+### Sơ Đồ Thực Thể (17 bảng)
 
 ```
 billiard_tables ──┬── sessions ──┬── session_segments
                   │              ├── order_items ── products
                   │              └── invoices ── discount_codes
                   └── reservations
-                  
+
 users ──┬── staff_schedules ── shifts
         └── schedule_audit_logs
 
 customers ── sessions
 
-price_rules        (loai_ban × loai_ngay × khung_gio)
-holiday_calendars  (ngay le → ap dung gia dac biet)
-shift_closings     (tong ket cuoi ca)
-app_settings       (cau hinh he thong)
+price_rules        (loại bàn x loại ngày x khung giờ)
+holiday_calendars  (ngày lễ → áp dụng giá đặc biệt)
+shift_closings     (tổng kết cuối ca)
+app_settings       (cấu hình hệ thống)
 ```
 
-### Cac Enum
+### Các Enum
 
-| Enum | Gia tri |
+| Enum | Giá trị |
 |------|---------|
 | `UserRole` | ADMIN, STAFF |
 | `TableType` | POOL, CAROM, VIP |
@@ -263,27 +263,27 @@ app_settings       (cau hinh he thong)
 
 ---
 
-## Phan Quyen
+## Phân Quyền
 
-| Chuc nang | Admin | Nhan vien |
+| Chức năng | Admin | Nhân viên |
 |-----------|:-----:|:---------:|
 | Dashboard | x | x |
-| Quan ly ban choi | x | x |
-| Xem hoa don | x | x |
-| Quan ly khach hang | x | x |
-| Dat ban | x | x |
-| Lich lam viec ca nhan | x | x |
-| Bao cao & thong ke | x | |
-| Quan ly san pham | x | |
-| Cau hinh gia | x | |
-| Quan ly nghi le | x | |
-| Quan ly ma giam gia | x | |
-| Quan ly nhan vien | x | |
-| Phan ca lam viec | x | |
+| Quản lý bàn chơi | x | x |
+| Xem hoá đơn | x | x |
+| Quản lý khách hàng | x | x |
+| Đặt bàn | x | x |
+| Lịch làm việc cá nhân | x | x |
+| Báo cáo & thống kê | x | |
+| Quản lý sản phẩm | x | |
+| Cấu hình giá | x | |
+| Quản lý nghỉ lễ | x | |
+| Quản lý mã giảm giá | x | |
+| Quản lý nhân viên | x | |
+| Phân ca làm việc | x | |
 
 ---
 
-## Trien Khai Voi Docker
+## Triển Khai Với Docker
 
 ### Backend
 
@@ -298,40 +298,40 @@ docker run -p 8080:8080 \
   bida-backend
 ```
 
-### Bien Moi Truong
+### Biến Môi Trường
 
-| Bien | Mo ta | Mac dinh |
+| Biến | Mô tả | Mặc định |
 |------|-------|----------|
 | `DB_URL` | JDBC connection string | `jdbc:mysql://localhost:3306/bida_db` |
-| `DB_USERNAME` | Tai khoan database | `root` |
-| `DB_PASSWORD` | Mat khau database | (trong) |
+| `DB_USERNAME` | Tài khoản database | `root` |
+| `DB_PASSWORD` | Mật khẩu database | (trống) |
 | `SPRING_PROFILES_ACTIVE` | Profile Spring Boot | `dev` |
 
 ---
 
 ## CI/CD
 
-Project su dung **GitHub Actions** de tu dong chay test backend:
+Project sử dụng **GitHub Actions** để tự động chạy test backend:
 
-- **Trigger**: Push hoac Pull Request vao nhanh `main`
-- **Quy trinh**: Checkout → Setup JDK 17 → Maven test
+- **Trigger**: Push hoặc Pull Request vào nhánh `main`
+- **Quy trình**: Checkout → Setup JDK 17 → Maven test
 
-File cau hinh: `.github/workflows/backend-ci.yml`
-
----
-
-## Giai Thich Thuat Toan Tinh Tien
-
-He thong tinh tien dua tren cac yeu to:
-
-1. **Phan doan thoi gian** — `SegmentSplitter` chia phien choi tai moc 00:00 neu keo qua ngay
-2. **Chien luoc gia** — `PricingStrategy` ap dung gia theo loai ban, loai ngay (thuong/cuoi tuan/le), va khung gio
-3. **Tru thoi gian tam dung** — Tu dong tru thoi gian ban bi tam dung
-4. **Giam gia** — Ap dung giam gia thanh vien + ma khuyen mai
-5. **Tong hop** — Cong phi ban choi + phi do an/uong → tao hoa don
+File cấu hình: `.github/workflows/backend-ci.yml`
 
 ---
 
-## Giay Phep
+## Giải Thích Thuật Toán Tính Tiền
 
-Du an phuc vu muc dich hoc tap (Do an mon J2EE).
+Hệ thống tính tiền dựa trên các yếu tố:
+
+1. **Phân đoạn thời gian** — `SegmentSplitter` chia phiên chơi tại mốc 00:00 nếu kéo qua ngày
+2. **Chiến lược giá** — `PricingStrategy` áp dụng giá theo loại bàn, loại ngày (thường/cuối tuần/lễ), và khung giờ
+3. **Trừ thời gian tạm dừng** — Tự động trừ thời gian bàn bị tạm dừng
+4. **Giảm giá** — Áp dụng giảm giá thành viên + mã khuyến mãi
+5. **Tổng hợp** — Cộng phí bàn chơi + phí đồ ăn/uống → tạo hoá đơn
+
+---
+
+## Giấy Phép
+
+Dự án phục vụ mục đích học tập (Đồ án môn J2EE).
